@@ -1,0 +1,186 @@
+import { create } from 'zustand';
+import { io } from 'socket.io-client';
+import { SOCKET_URL } from '../config';
+
+const socket = io(SOCKET_URL);
+
+export const useGameStore = create((set, get) => ({
+  // Connection state
+  socket,
+
+  // Player state
+  playerId: localStorage.getItem('playerId') || null,
+  playerName: localStorage.getItem('playerName') || '',
+  isHost: false,
+
+  // Room state
+  roomId: null,
+  gameCode: null,
+  players: [],
+
+  // Game state
+  phase: 'landing', // landing, lobby, clue, discussion, voting, reveal, tie, gameOver
+  role: null, // 'civilian' or 'imposter'
+  secretWord: null,
+  clues: [],
+  votes: {},
+  readyPlayers: { readyCount: 0, totalPlayers: 0 },
+  eliminatedPlayer: null,
+  remainingImpostersCount: 0,
+  tiedPlayers: null,
+  voteCount: null,
+  winners: null,
+  imposterIds: [],
+
+  // Settings
+  settings: {
+    numImposters: 1,
+    category: 'animals',
+    maxPlayers: 10,
+    gameMode: 'online'
+  },
+
+  // Actions
+  setPlayerId: (playerId) => {
+    localStorage.setItem('playerId', playerId);
+    set({ playerId });
+  },
+
+  setPlayerName: (playerName) => {
+    localStorage.setItem('playerName', playerName);
+    set({ playerName });
+  },
+
+  setRoomData: (roomId, gameCode, isHost = false) => {
+    set({ roomId, gameCode, isHost });
+  },
+
+  setPhase: (phase) => set({ phase }),
+
+  setRole: (role, secretWord = null) => {
+    set({ role, secretWord });
+  },
+
+  setPlayers: (players) => set({ players }),
+
+  setClues: (clues) => set({ clues }),
+
+  setSettings: (settings) => set({ settings }),
+
+  updateVoteProgress: (votesReceived, totalVotes) => {
+    set({ votes: { votesReceived, totalVotes } });
+  },
+
+  setEliminatedPlayer: (eliminatedPlayer) => set({ eliminatedPlayer }),
+
+  setGameOver: (winners, imposterIds, secretWord) => {
+    set({ phase: 'gameOver', winners, imposterIds, secretWord });
+  },
+
+  resetGame: () => {
+    set({
+      roomId: null,
+      gameCode: null,
+      players: [],
+      phase: 'landing',
+      role: null,
+      secretWord: null,
+      clues: [],
+      votes: {},
+      readyPlayers: { readyCount: 0, totalPlayers: 0 },
+      eliminatedPlayer: null,
+      remainingImpostersCount: 0,
+      tiedPlayers: null,
+      voteCount: null,
+      winners: null,
+      imposterIds: [],
+      isHost: false
+    });
+  },
+
+  // Socket event handlers
+  initializeSocket: () => {
+    const { roomId, playerId } = get();
+
+    socket.on('ROOM_UPDATED', ({ room }) => {
+      console.log('📥 ROOM_UPDATED received. Clues:', room.gameState?.clues);
+      set({
+        players: room.players,
+        settings: room.settings,
+        clues: room.gameState?.clues || []
+      });
+    });
+
+    socket.on('PHASE_CHANGED', ({ phase }) => {
+      set({ phase });
+    });
+
+    socket.on('ROLE_INFO', ({ role, word }) => {
+      set({ role, secretWord: word });
+    });
+
+    socket.on('CLUE_SUBMITTED', ({ clues }) => {
+      console.log('📥 CLUE_SUBMITTED received. Clues:', clues);
+      set({ clues });
+    });
+
+    socket.on('VOTE_UPDATE', ({ votesReceived, totalVotes }) => {
+      set({ votes: { votesReceived, totalVotes } });
+    });
+
+    socket.on('READY_UPDATE', ({ readyCount, totalPlayers }) => {
+      set({ readyPlayers: { readyCount, totalPlayers } });
+    });
+
+    socket.on('VOTE_TIE', ({ tiedPlayers, voteCount }) => {
+      set({
+        phase: 'tie',
+        tiedPlayers,
+        voteCount
+      });
+    });
+
+    socket.on('VOTE_RESULTS', ({ eliminatedPlayer, wasImposter, remainingImpostersCount }) => {
+      set({ eliminatedPlayer, remainingImpostersCount });
+    });
+
+    socket.on('GAME_OVER', ({ winners, imposterIds, secretWord }) => {
+      set({
+        phase: 'gameOver',
+        winners,
+        imposterIds,
+        secretWord
+      });
+    });
+
+    socket.on('ERROR', ({ message }) => {
+      console.error('Socket error:', message);
+      alert(message);
+    });
+  },
+
+  joinRoom: (roomId, playerId) => {
+    socket.emit('JOIN_ROOM', { roomId, playerId });
+  },
+
+  startGame: () => {
+    const { roomId } = get();
+    socket.emit('START_GAME', { roomId });
+  },
+
+  submitClue: (text) => {
+    const { roomId, playerId } = get();
+    console.log('📤 Submitting clue:', { roomId, playerId, text });
+    socket.emit('SUBMIT_CLUE', { roomId, playerId, text });
+  },
+
+  startVoting: () => {
+    const { roomId, playerId } = get();
+    socket.emit('START_VOTING', { roomId, playerId });
+  },
+
+  castVote: (targetId) => {
+    const { roomId, playerId } = get();
+    socket.emit('CAST_VOTE', { roomId, voterId: playerId, targetId });
+  }
+}));

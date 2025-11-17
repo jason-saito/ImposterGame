@@ -1,0 +1,899 @@
+﻿WHAT YOU ARE BUILDING: 
+📘 Imposter Game – Context & Experience Overview
+What the Game Is
+Imposter is a fast-paced, social bluffing game (inspired by Spyfall and the voting dynamics of Among Us) built to run like a Kahoot-style web experience.
+* One person hosts the game on a shared screen (TV/projector/laptop).
+
+* Everyone else joins using their phone through a simple game code.
+
+* The game gives all players the same secret word except for one (or more) Imposters, who receive no word.
+
+* Players must give clues about the word while trying not to reveal it outright.
+
+* The Imposter tries to blend in by faking clues.
+
+* After clues, players vote to identify the Imposter.
+
+* The host screen dramatically reveals the result.
+
+The goal is to keep the gameplay simple, fast, and social, letting players talk, debate, and laugh together—while the web app handles roles, clues, voting, and the reveal.
+________________
+
+
+How the Game Should Feel (User Experience)
+🎮 1. Kahoot-style joining
+Visually, the game should feel as easy as joining a Kahoot or Jackbox game:
+   * Large 6-digit game code on the host screen
+
+   * Players join instantly from their phones via a URL
+
+   * When they join, the host screen updates in real time
+
+   * A lively, fun vibe—big bold text, animated transitions, smooth movement
+
+The joining experience should be:
+      * Zero friction
+
+      * No account needed
+
+      * No instructions needed (intuitive, obvious)
+
+________________
+
+
+🎭 2. Dramatic role reveal
+When the game starts:
+Non-imposter’s screen:
+         * Bold card saying “You are a Civilian”
+
+         * Below that: the secret word
+
+         * Clean, minimal UI so the word is unmistakable
+
+Imposter’s screen:
+            * Big bold card: “You are the Imposter.”
+
+            * Subtext: “Try to blend in.”
+
+This is a private reveal, so it feels personal and suspenseful.
+BUT MAKE SURE THAT THIS SCREEN APPEARS ON THEIR DEVICE ONLY 
+________________
+
+
+📝 3. Clue-giving experience
+Player screens should show:
+               * A header reminding them of their role
+
+               * If civilian: the secret word (large, centered)
+
+               * If Imposter: “No word provided”
+
+               * A text field: “Enter your clue”
+
+               * A clear submit button
+
+The host screen:
+                  * Shows a list of players
+
+                  * Optionally shows clues appears one by one (like Spyfall)
+
+                  * Or keeps clues hidden until all are submitted
+
+                  * A countdown timer may be shown
+
+The tone should be:
+                     * Clean, readable
+
+                     * No distractions
+
+                     * Emphasis on the clues
+
+________________
+
+
+🗣️ 4. Discussion phase
+This phase involves real human conversation.
+The UI should be minimal:
+                        * Host screen: all clues visible
+
+                        * Maybe a short countdown timer
+
+                        * Player screens: simple message “Discuss your theories…”
+
+No buttons needed except the host’s “Start Voting” button.
+________________
+
+
+🗳️ 5. Voting experience
+Player screens display:
+                           * A list of player names with selectable cards
+
+                           * Tap one → it highlights
+
+                           * Tap Submit
+
+                           * UI becomes locked and shows “Waiting for others…”
+
+Host screen:
+                              * Optionally displays vote progress (“4/7 votes submitted”)
+
+                              * Does not show actual votes until the reveal
+
+This should feel snappy, clear, and fair.
+________________
+
+
+🎉 6. Dramatic reveal & results
+The host screen is the main spectacle here.
+It should show:
+Step 1
+“You voted out: [Player Name]”
+ – Big bold animation (fade-in, pop, or card flip)
+Step 2
+Reveal if the eliminated player was an Imposter:
+                                 * Green if correct
+
+                                 * Red if wrong
+
+Step 3
+Show whether the game ends:
+                                    * “Civilians Win!”
+
+                                    * or “Imposters Win!”
+
+                                    * or “Continue to next round” (if using multi-round mode)
+
+Player screens also get a clean summary.
+This phase should feel fun, suspenseful, and satisfying.
+________________
+
+
+Target Visual Style
+Here’s what the app should broadly look like:
+Clean + Bold + Playful
+                                       * Similar to Kahoot or Jackbox branding
+
+                                       * Big typography
+
+                                       * High contrast
+
+                                       * Simple shapes & cards (no clutter)
+
+Dynamic
+                                          * Smooth animations (fade, slide, scale)
+
+                                          * Real-time updates
+
+Device-Friendly
+                                             * Player UI fits perfectly on mobile (thumb-accessible buttons)
+
+                                             * Host UI works well on desktop/TV
+
+________________
+
+
+High-Level User Flow Summary
+                                                1. Landing Page → Host or Join
+
+                                                2. Host creates room → Gets game code
+
+                                                3. Players join → Lobby updates live
+
+                                                4. Host starts game → Role reveal phase
+
+                                                5. Clue Phase → Everyone submits clues
+
+                                                6. Discussion Phase → Players debate
+
+                                                7. Voting Phase → Everyone selects someone
+
+                                                8. Reveal Phase → Dramatic results
+
+                                                9. Game Over → Option to replay
+
+Everything should feel:
+                                                   * Fast
+
+                                                   * Social
+
+                                                   * Intuitive
+
+                                                   * Fun to watch
+
+________________
+
+
+If you want, I can also generate:
+✔ A pitch-ready product summary
+ ✔ A UX mood board (descriptions of ideal visuals)
+✔ A feature prioritization list
+ ✔ A high-level architecture diagram
+ ✔ Fully designed UI mockups (wireframes or Figma descriptions)
+Just tell me which one you want next.
+
+
+TECHNICAL REQUIREMENTS
+________________
+
+
+0. Landing Page
+What happens (user journey)
+                                                      * Host and players both land on the same URL, e.g. imposter.game.
+
+                                                      * They see:
+
+                                                         * A “Host Game” button.
+
+                                                         * A “Join Game” area with a text box to enter a game code.
+
+What you need to implement
+Frontend
+                                                            * Simple landing page with:
+
+                                                               * Host Game button → navigates to /host or triggers room creation.
+
+                                                               * Join Game form → input for gameCode + playerName.
+
+Suggested libraries (frontend)
+                                                                  * React + Vite or Next.js for the app.
+
+                                                                  * React Router (if Vite) for / / /host / /play.
+
+                                                                  * Tailwind CSS for quick styling.
+
+Backend
+                                                                     * Nothing special yet; landing page is static.
+
+Suggested libraries (backend)
+                                                                        * Express to serve the API + static frontend (or use separate hosting).
+
+                                                                        * cors, helmet for basic security.
+
+________________
+
+
+1. Host Creates a Game
+What happens
+                                                                           * Host clicks “Host Game”.
+
+                                                                           * A new room is created.
+
+                                                                           * Host is taken to the lobby screen which shows:
+
+                                                                              * The game code (big).
+
+                                                                              * A list of connected players (initially just host).
+
+                                                                              * Basic settings (num imposters, category, etc.).
+
+What you need to implement
+Frontend
+                                                                                 * When Host Game is clicked:
+
+                                                                                    * Call POST /rooms with hostName (or ask host for name first).
+
+                                                                                    * Save { roomId, hostPlayer } in client state.
+
+                                                                                    * Open a WebSocket connection.
+
+                                                                                    * Emit JOIN_ROOM via socket with { roomId, playerId: hostPlayer.playerId }.
+
+                                                                                    * Render Lobby View (Host):
+
+                                                                                       * Large gameCode.
+
+                                                                                       * Player list panel.
+
+                                                                                       * Game settings controls.
+
+                                                                                       * Start Game button.
+
+Suggested libraries (frontend)
+                                                                                          * axios or fetch for POST /rooms.
+
+                                                                                          * socket.io-client for WebSocket connection.
+
+                                                                                          * Zustand or Redux Toolkit for app/game state (roomId, playerId, role, etc.).
+
+Backend
+                                                                                             * POST /rooms:
+
+                                                                                                * Generate roomId (UUID).
+
+                                                                                                * Generate gameCode (6 digits) and ensure unique among active rooms.
+
+                                                                                                * Create a Room object in memory/Redis.
+
+                                                                                                * Create hostPlayer.
+
+                                                                                                * Return { roomId, gameCode, hostPlayer }.
+
+                                                                                                   * WebSocket:
+
+                                                                                                      * On JOIN_ROOM event:
+
+                                                                                                         * Verify roomId and playerId belong together.
+
+                                                                                                         * Attach socket to that room’s channel.
+
+                                                                                                         * Emit ROOM_UPDATED { room } to all clients in the room.
+
+Suggested libraries (backend)
+                                                                                                            * uuid for roomId / playerId.
+
+                                                                                                            * Socket.io for real-time rooms/channels.
+
+                                                                                                            * Plain JS Map for room store initially, Redis later for scalability.
+
+________________
+
+
+2. Players Join via Game Code
+What happens
+                                                                                                               * Each player:
+
+                                                                                                                  * Opens the site on their phone.
+
+                                                                                                                  * Types in game code + name.
+
+                                                                                                                     * If valid:
+
+                                                                                                                        * They join the lobby.
+
+                                                                                                                        * They see the list of players, including themselves.
+
+                                                                                                                           * Host sees player list updating in real time.
+
+What you need to implement
+Frontend (Player)
+                                                                                                                              * Join form:
+
+                                                                                                                                 * On submit → POST /rooms/join { gameCode, playerName }.
+
+                                                                                                                                    * On success:
+
+                                                                                                                                       * Store roomId, playerId.
+
+                                                                                                                                       * Open WebSocket.
+
+                                                                                                                                       * Emit JOIN_ROOM { roomId, playerId }.
+
+                                                                                                                                       * Render Lobby View (Player):
+
+                                                                                                                                          * Show game code.
+
+                                                                                                                                          * Show player list (from ROOM_UPDATED).
+
+                                                                                                                                          * Show “Waiting for host to start”.
+
+Suggested libraries (frontend)
+                                                                                                                                             * Same as above: axios/fetch, socket.io-client, Zustand for state.
+
+Backend
+                                                                                                                                                * POST /rooms/join:
+
+                                                                                                                                                   * Lookup room by gameCode and ensure:
+
+                                                                                                                                                      * Exists
+
+                                                                                                                                                      * Status is "lobby"
+
+                                                                                                                                                      * Not full
+
+                                                                                                                                                         * Create new player.
+
+                                                                                                                                                         * Add to room’s players list.
+
+                                                                                                                                                         * Return { roomId, player }.
+
+                                                                                                                                                            * WebSocket:
+
+                                                                                                                                                               * On JOIN_ROOM:
+
+                                                                                                                                                                  * Add socket to room channel.
+
+                                                                                                                                                                  * Emit ROOM_UPDATED { room } to all sockets in that room.
+
+                                                                                                                                                                     * Validation:
+
+                                                                                                                                                                        * Handle errors: invalid code, game already started, room full.
+
+Suggested libraries (backend)
+                                                                                                                                                                           * Zod for schema validation on incoming bodies (gameCode, playerName).
+
+                                                                                                                                                                           * express-validator if you prefer middleware-style validation.
+
+________________
+
+
+3. Lobby State (Before Start)
+What happens
+                                                                                                                                                                              * Host sees:
+
+                                                                                                                                                                                 * List of players joining live.
+
+                                                                                                                                                                                 * Controls for:
+
+                                                                                                                                                                                    * Number of imposters
+
+                                                                                                                                                                                    * Word source (custom/category)
+
+                                                                                                                                                                                    * Category selection
+
+                                                                                                                                                                                       * Players see:
+
+                                                                                                                                                                                          * That they are in the room.
+
+                                                                                                                                                                                          * The current player list.
+
+What you need to implement
+Frontend
+                                                                                                                                                                                             * Host lobby UI to:
+
+                                                                                                                                                                                                * Change settings (simple UI controls).
+
+                                                                                                                                                                                                * Send changes to backend.
+
+                                                                                                                                                                                                   * Player lobby UI:
+
+                                                                                                                                                                                                      * Read-only view of:
+
+                                                                                                                                                                                                         * gameCode
+
+                                                                                                                                                                                                         * player list
+
+                                                                                                                                                                                                         * maybe settings summary.
+
+Suggested libraries (frontend)
+                                                                                                                                                                                                            * Headless UI / Radix UI for dropdowns, toggles, etc.
+
+                                                                                                                                                                                                            * Zustand store to keep room + settings in sync from ROOM_UPDATED.
+
+Backend
+                                                                                                                                                                                                               * Optional endpoint: PATCH /rooms/settings or a socket event UPDATE_SETTINGS.
+
+                                                                                                                                                                                                               * On setting changes:
+
+                                                                                                                                                                                                                  * Update room.settings.
+
+                                                                                                                                                                                                                  * Emit ROOM_UPDATED { room } to everyone.
+
+Suggested libraries (backend)
+                                                                                                                                                                                                                     * Keep using Socket.io for UPDATE_SETTINGS.
+
+                                                                                                                                                                                                                     * Zod to validate settings (numImposters, category, etc.).
+
+________________
+
+
+4. Host Starts the Game
+What happens
+                                                                                                                                                                                                                        * Host clicks “Start Game”.
+
+                                                                                                                                                                                                                        * Game transitions from Lobby → Clue Phase.
+
+                                                                                                                                                                                                                        * Backend:
+
+                                                                                                                                                                                                                           * Randomly assigns Imposters.
+
+                                                                                                                                                                                                                           * Picks a secret word based on the settings.
+
+                                                                                                                                                                                                                              * Each player’s device:
+
+                                                                                                                                                                                                                                 * Sees a Role Screen:
+
+                                                                                                                                                                                                                                    * Non-imposters: “Here’s the secret word: ___”
+
+                                                                                                                                                                                                                                    * Imposters: “You are the Imposter. Blend in.”
+
+What you need to implement
+Frontend
+                                                                                                                                                                                                                                       * Host Start Game button:
+
+                                                                                                                                                                                                                                          * Calls POST /rooms/start or emits socket event START_GAME.
+
+                                                                                                                                                                                                                                             * On PHASE_CHANGED + private role events:
+
+                                                                                                                                                                                                                                                * If client is non-imposter:
+
+                                                                                                                                                                                                                                                   * Show secret word screen.
+
+                                                                                                                                                                                                                                                      * If client is imposter:
+
+                                                                                                                                                                                                                                                         * Show “You’re the Imposter” screen.
+
+Suggested libraries (frontend)
+                                                                                                                                                                                                                                                            * socket.io-client for START_GAME event.
+
+                                                                                                                                                                                                                                                            * Your global state store to store role and secretWord once received.
+
+Backend
+                                                                                                                                                                                                                                                               * START_GAME handler:
+
+                                                                                                                                                                                                                                                                  * Validate host.
+
+                                                                                                                                                                                                                                                                  * Pick numImposters random players.
+
+                                                                                                                                                                                                                                                                  * Choose secretWord from:
+
+                                                                                                                                                                                                                                                                     * Custom list OR
+
+                                                                                                                                                                                                                                                                     * Category word list (can be static for MVP).
+
+                                                                                                                                                                                                                                                                        * Update gameState:
+
+                                                                                                                                                                                                                                                                           * phase = "clue"
+
+                                                                                                                                                                                                                                                                           * roundNumber = 1
+
+                                                                                                                                                                                                                                                                           * secretWord
+
+                                                                                                                                                                                                                                                                           * imposterIds
+
+                                                                                                                                                                                                                                                                              * Broadcast:
+
+                                                                                                                                                                                                                                                                                 * To room: PHASE_CHANGED { phase: "clue" }
+
+                                                                                                                                                                                                                                                                                 * To each player socket individually:
+
+                                                                                                                                                                                                                                                                                    * Non-imposter: ROLE_INFO { role: "civilian", word: secretWord }
+
+                                                                                                                                                                                                                                                                                    * Imposter: ROLE_INFO { role: "imposter", word: null }
+
+Suggested libraries (backend)
+                                                                                                                                                                                                                                                                                       * Socket.io rooms (io.to(roomId) vs socket.emit) for per-room vs per-player events.
+
+                                                                                                                                                                                                                                                                                       * lodash.shuffle or similar helper for randomizing imposters (optional, native JS works too).
+
+________________
+
+
+5. Clue Phase
+What happens
+                                                                                                                                                                                                                                                                                          * Players see:
+
+                                                                                                                                                                                                                                                                                             * Secret word (if not imposter).
+
+                                                                                                                                                                                                                                                                                             * Text box: “Enter your clue”.
+
+                                                                                                                                                                                                                                                                                                * Imposter tries to fake it based on others’ hints or their guess.
+
+                                                                                                                                                                                                                                                                                                * Once everyone has submitted, or timer ends → move to discussion.
+
+What you need to implement
+Frontend
+                                                                                                                                                                                                                                                                                                   * Show:
+
+                                                                                                                                                                                                                                                                                                      * Role info at top.
+
+                                                                                                                                                                                                                                                                                                      * Clue input and submit button.
+
+                                                                                                                                                                                                                                                                                                         * On submit:
+
+                                                                                                                                                                                                                                                                                                            * Emit SUBMIT_CLUE { roomId, playerId, text } via socket.
+
+                                                                                                                                                                                                                                                                                                               * Disable input after submit.
+
+                                                                                                                                                                                                                                                                                                               * Subscribe to:
+
+                                                                                                                                                                                                                                                                                                                  * CLUE_SUBMITTED / ROOM_UPDATED (to show clue list if you want everyone to see them during/after input).
+
+Suggested libraries (frontend)
+                                                                                                                                                                                                                                                                                                                     * React Hook Form for easy form handling (overkill but nice).
+
+                                                                                                                                                                                                                                                                                                                     * Just socket.io-client and basic React state is also fine.
+
+Backend
+                                                                                                                                                                                                                                                                                                                        * On SUBMIT_CLUE:
+
+                                                                                                                                                                                                                                                                                                                           * Validate:
+
+                                                                                                                                                                                                                                                                                                                              * Player belongs to room.
+
+                                                                                                                                                                                                                                                                                                                              * Phase is "clue".
+
+                                                                                                                                                                                                                                                                                                                                 * Append to gameState.clues.
+
+                                                                                                                                                                                                                                                                                                                                 * Optionally: track who has submitted.
+
+                                                                                                                                                                                                                                                                                                                                 * Emit updated clues to room, e.g. CLUE_SUBMITTED { clues }.
+
+                                                                                                                                                                                                                                                                                                                                    * When:
+
+                                                                                                                                                                                                                                                                                                                                       * All players submitted or clue timer done:
+
+                                                                                                                                                                                                                                                                                                                                          * Update phase → "discussion".
+
+                                                                                                                                                                                                                                                                                                                                          * Emit PHASE_CHANGED { phase: "discussion" }.
+
+Suggested libraries (backend)
+                                                                                                                                                                                                                                                                                                                                             * dayjs or luxon if you want server-side timers with nice time handling.
+
+                                                                                                                                                                                                                                                                                                                                             * Store submittedPlayerIds in memory for this phase.
+
+________________
+
+
+6. Discussion Phase
+What happens
+                                                                                                                                                                                                                                                                                                                                                * Players talk out loud IRL (no real backend logic).
+
+                                                                                                                                                                                                                                                                                                                                                * Frontend just displays:
+
+                                                                                                                                                                                                                                                                                                                                                   * The list of clues.
+
+                                                                                                                                                                                                                                                                                                                                                   * A countdown timer (optional).
+
+                                                                                                                                                                                                                                                                                                                                                      * After time’s up, host or system moves game to voting.
+
+What you need to implement
+Frontend
+                                                                                                                                                                                                                                                                                                                                                         * Simple screen:
+
+                                                                                                                                                                                                                                                                                                                                                            * List of clues.
+
+                                                                                                                                                                                                                                                                                                                                                            * “Discussion… X seconds remaining”.
+
+                                                                                                                                                                                                                                                                                                                                                            * For host: a “Start Voting” button.
+
+Suggested libraries (frontend)
+                                                                                                                                                                                                                                                                                                                                                               * Plain setInterval hook for local countdown (or sync from server time if you want).
+
+Backend
+                                                                                                                                                                                                                                                                                                                                                                  * Either:
+
+                                                                                                                                                                                                                                                                                                                                                                     * Automatically transition after some timer (on server), or
+
+                                                                                                                                                                                                                                                                                                                                                                     * On host action START_VOTING { roomId }.
+
+                                                                                                                                                                                                                                                                                                                                                                        * Handler:
+
+                                                                                                                                                                                                                                                                                                                                                                           * Set gameState.phase = "voting".
+
+                                                                                                                                                                                                                                                                                                                                                                           * Clear votes.
+
+                                                                                                                                                                                                                                                                                                                                                                           * Emit PHASE_CHANGED { phase: "voting" }.
+
+Suggested libraries (backend)
+                                                                                                                                                                                                                                                                                                                                                                              * Node timers (setTimeout) to auto-switch if you want server-authoritative timers.
+
+________________
+
+
+7. Voting Phase
+What happens
+                                                                                                                                                                                                                                                                                                                                                                                 * Each player sees:
+
+                                                                                                                                                                                                                                                                                                                                                                                    * A list of players (names).
+
+                                                                                                                                                                                                                                                                                                                                                                                    * Option to select who they think is the Imposter.
+
+                                                                                                                                                                                                                                                                                                                                                                                       * They select a name and submit.
+
+                                                                                                                                                                                                                                                                                                                                                                                       * Once all votes are in (or timer ends):
+
+                                                                                                                                                                                                                                                                                                                                                                                          * The game tallies votes.
+
+                                                                                                                                                                                                                                                                                                                                                                                          * Decides who gets eliminated.
+
+What you need to implement
+Frontend
+                                                                                                                                                                                                                                                                                                                                                                                             * Voting screen:
+
+                                                                                                                                                                                                                                                                                                                                                                                                * List of player names (disable self-vote if that’s the rule).
+
+                                                                                                                                                                                                                                                                                                                                                                                                * On click: highlight selection.
+
+                                                                                                                                                                                                                                                                                                                                                                                                * Submit → emit CAST_VOTE { roomId, voterId, targetId }.
+
+                                                                                                                                                                                                                                                                                                                                                                                                   * After submitting:
+
+                                                                                                                                                                                                                                                                                                                                                                                                      * Disable further input.
+
+                                                                                                                                                                                                                                                                                                                                                                                                      * Show “Waiting for other players…”
+
+Suggested libraries (frontend)
+                                                                                                                                                                                                                                                                                                                                                                                                         * Just React + socket.io-client + your state store.
+
+Backend
+                                                                                                                                                                                                                                                                                                                                                                                                            * On CAST_VOTE:
+
+                                                                                                                                                                                                                                                                                                                                                                                                               * Validate:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                  * Phase is "voting".
+
+                                                                                                                                                                                                                                                                                                                                                                                                                  * voterId belongs to room and hasn’t voted yet.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                  * targetId is a valid player.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                     * Save votes[voterId] = targetId.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                     * Optionally emit VOTE_UPDATE with partial counts (anonymized).
+
+                                                                                                                                                                                                                                                                                                                                                                                                                        * When:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                           * All players voted or vote timer ends:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                              * Count votes.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                              * Find eliminatedPlayerId (handle ties according to your rule).
+
+                                                                                                                                                                                                                                                                                                                                                                                                                              * Determine wasImposter.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                              * Update gameState.eliminatedPlayer.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                              * Set phase → "reveal".
+
+                                                                                                                                                                                                                                                                                                                                                                                                                              * Emit VOTE_RESULTS { eliminatedPlayer, wasImposter } and PHASE_CHANGED { phase: "reveal" }.
+
+Suggested libraries (backend)
+                                                                                                                                                                                                                                                                                                                                                                                                                                 * lodash.countBy to quickly tally votes (or native JS reduce).
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                 * Again, dayjs if timing is server-driven.
+
+________________
+
+
+8. Reveal Phase
+What happens
+                                                                                                                                                                                                                                                                                                                                                                                                                                    * Main screen (host) shows:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                       * Dramatic reveal: “You voted out ___”.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                       * “They were / were not the Imposter.”
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                          * If Imposter remains alive → either:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                             * Another round, or
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                             * Imposters win (depending on your rule).
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                * If all Imposters eliminated → Civilians win.
+
+What you need to implement
+Frontend
+                                                                                                                                                                                                                                                                                                                                                                                                                                                   * Reveal view:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Animate showing the eliminated player.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Show if they were Imposter.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Display win/lose outcome if game ends.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                         * For host:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            * Buttons:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                               * “Next Round” (if you want multiple rounds)
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                               * or “End Game / Back to Lobby”.
+
+Suggested libraries (frontend)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  * Framer Motion for smooth animations (reveal, card flips).
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  * Tailwind + Radix for modals/dialogs.
+
+Backend
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * After reveal:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        * If game ends:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * room.status = "finished".
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * Emit GAME_OVER { winners }.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                              * If you support multiple rounds:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * Reset phase → "clue".
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * Maybe choose new word/imposters.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * Emit PHASE_CHANGED again.
+
+Suggested libraries (backend)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    * None special here beyond what you already use; just pure logic.
+
+________________
+
+
+9. Game Over / Play Again
+What happens
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * Players see final screen:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Who was the Imposter.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Summary (optional: clues, votes).
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             * Host can:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Return to main menu.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Or create a new game with a new code.
+
+What you need to implement
+Frontend
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   * “Game Over” screen:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Button: “Back to Home” (clears room state).
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         * Optionally:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            * “Play again with same players” → calls an endpoint to reset state.
+
+Backend
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               * Optionally:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  * POST /rooms/reset to:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * Clear gameState.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * Keep same players.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * Set status = "lobby".
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        * Or simpler:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * Require host to create a new room.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              * Cleanup:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * Background job to delete rooms whose status = finished for > X minutes.
+
+Suggested libraries (backend)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    * node-cron or a simple interval task for cleaning up finished/expired rooms.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    * Redis TTL if you move rooms to Redis (let keys expire automatically).
+
+________________
+
+
+10. Edge Cases / Support Flows
+A. Player disconnects mid-game
+What you need:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * Track connected flag for each player.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * When a socket disconnects:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Mark connected = false.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Emit ROOM_UPDATED.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             * If they refresh/rejoin:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Use stored playerId (e.g. in localStorage) and re-bind on JOIN_ROOM.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   * Decide rules if someone disconnects during voting/clues (ignore or auto-skip them).
+
+Suggested libraries
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * socket.io already emits disconnect and connect events.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use localStorage on the frontend to cache roomId and playerId.
+
+B. Invalid game code / room full
+What you need:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         * On POST /rooms/join:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            * Return meaningful error codes.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               * Frontend:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  * Show user-friendly messages:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * “Game not found”
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * “Game has already started”
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * “Room is full”
+
+Suggested libraries
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        * Zod or similar to standardize error responses.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        * On frontend, a small toast library (e.g., react-hot-toast) to show errors cleanly.
+
+________________
+
+
+If you want, next step I can give you:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * A sample folder structure for frontend + backend using these libs, or
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * A task breakdown you can hand directly to a dev (e.g., “Ticket #1: Implement /rooms API with uuid + Map store”).
