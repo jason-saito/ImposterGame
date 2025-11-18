@@ -1,18 +1,29 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { API_URL } from '../config';
 
 export default function Landing() {
-  const [gameCode, setGameCode] = useState('');
+  const { code } = useParams();
+  const [searchParams] = useSearchParams();
+  const urlCode = code || searchParams.get('code') || '';
+  const [gameCode, setGameCode] = useState(urlCode);
   const [playerName, setPlayerName] = useState('');
   const [hostName, setHostName] = useState('');
-  const [showJoinForm, setShowJoinForm] = useState(false);
+  const [showJoinForm, setShowJoinForm] = useState(!!urlCode);
   const [showHostForm, setShowHostForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { setPlayerId, setPlayerName: savePlayerName, setRoomData, joinRoom, initializeSocket } = useGameStore();
   const navigate = useNavigate();
+
+  // If code is in URL, pre-fill and show join form
+  useEffect(() => {
+    if (urlCode) {
+      setGameCode(urlCode);
+      setShowJoinForm(true);
+    }
+  }, [urlCode]);
 
   const handleHostGame = async () => {
     if (!hostName.trim()) {
@@ -37,7 +48,7 @@ export default function Landing() {
       initializeSocket();
       joinRoom(data.roomId, data.hostPlayer.playerId);
 
-      navigate('/lobby');
+      navigate(`/lobby/${data.gameCode}`);
     } catch (error) {
       console.error('Error creating room:', error);
       alert('Failed to create room. Please try again.');
@@ -74,7 +85,7 @@ export default function Landing() {
       initializeSocket();
       joinRoom(data.roomId, data.player.playerId);
 
-      navigate('/lobby');
+      navigate(`/lobby/${gameCode}`);
     } catch (error) {
       console.error('Error joining room:', error);
       alert(error.message || 'Failed to join room. Please try again.');
@@ -144,11 +155,11 @@ export default function Landing() {
               <h2 className="text-2xl font-bold text-gray-800">Join a Game</h2>
               <input
                 type="text"
-                placeholder="Enter 6-digit game code"
+                placeholder="Enter 2-digit game code"
                 value={gameCode}
-                onChange={(e) => setGameCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) => setGameCode(e.target.value.replace(/\D/g, '').slice(0, 2))}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-lg text-center tracking-widest font-bold"
-                maxLength={6}
+                maxLength={2}
               />
               <input
                 type="text"

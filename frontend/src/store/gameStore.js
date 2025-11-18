@@ -31,6 +31,9 @@ export const useGameStore = create((set, get) => ({
   voteCount: null,
   winners: null,
   imposterIds: [],
+  category: null,
+  numImposters: 0,
+  otherImpostersCount: 0,
 
   // Settings
   settings: {
@@ -94,7 +97,10 @@ export const useGameStore = create((set, get) => ({
       voteCount: null,
       winners: null,
       imposterIds: [],
-      isHost: false
+      isHost: false,
+      category: null,
+      numImposters: 0,
+      otherImpostersCount: 0
     });
   },
 
@@ -115,8 +121,14 @@ export const useGameStore = create((set, get) => ({
       set({ phase });
     });
 
-    socket.on('ROLE_INFO', ({ role, word }) => {
-      set({ role, secretWord: word });
+    socket.on('ROLE_INFO', ({ role, word, category, numImposters, otherImpostersCount }) => {
+      set({ 
+        role, 
+        secretWord: word,
+        category: category || null,
+        numImposters: numImposters || 0,
+        otherImpostersCount: otherImpostersCount || 0
+      });
     });
 
     socket.on('CLUE_SUBMITTED', ({ clues }) => {
@@ -165,6 +177,12 @@ export const useGameStore = create((set, get) => ({
 
   startGame: () => {
     const { roomId } = get();
+    if (!roomId) {
+      console.error('Cannot start game: roomId is missing');
+      alert('Error: Not connected to a room. Please try refreshing the page.');
+      return;
+    }
+    console.log('Starting game with roomId:', roomId);
     socket.emit('START_GAME', { roomId });
   },
 
@@ -182,5 +200,20 @@ export const useGameStore = create((set, get) => ({
   castVote: (targetId) => {
     const { roomId, playerId } = get();
     socket.emit('CAST_VOTE', { roomId, voterId: playerId, targetId });
+  },
+
+  nextRound: () => {
+    const { roomId, playerId } = get();
+    socket.emit('NEXT_ROUND', { roomId, playerId });
+  },
+
+  endGame: () => {
+    const { roomId, playerId } = get();
+    socket.emit('END_GAME', { roomId, playerId });
+  },
+
+  restartGame: () => {
+    const { roomId, playerId } = get();
+    socket.emit('RESTART_GAME', { roomId, playerId });
   }
 }));

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 
 export default function RevealPhase() {
-  const { eliminatedPlayer, remainingImpostersCount } = useGameStore();
+  const { eliminatedPlayer, remainingImpostersCount, isHost, nextRound } = useGameStore();
 
   if (!eliminatedPlayer) {
     return (
@@ -84,9 +84,18 @@ export default function RevealPhase() {
                 <p className="text-3xl font-black text-white mb-2">
                   {remainingImpostersCount} IMPOSTER{remainingImpostersCount > 1 ? 'S' : ''} REMAIN{remainingImpostersCount === 1 ? 'S' : ''}!
                 </p>
-                <p className="text-xl text-white opacity-90">
-                  Starting next round...
-                </p>
+                {isHost ? (
+                  <button
+                    onClick={nextRound}
+                    className="mt-4 w-full bg-white text-orange-500 text-xl font-black py-4 rounded-xl hover:bg-orange-50 transition-all shadow-lg"
+                  >
+                    START NEXT ROUND
+                  </button>
+                ) : (
+                  <p className="text-xl text-white opacity-90">
+                    Waiting for host to start next round...
+                  </p>
+                )}
               </div>
             ) : (
               <p className="text-white text-lg opacity-75">

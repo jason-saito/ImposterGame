@@ -44,8 +44,13 @@ This guide will help you deploy your Imposter game to Render so you can play onl
    - `CORS_ORIGIN` = (Leave empty for now, we'll set this after frontend is deployed)
 
 6. Click "Create Web Service"
-7. Wait for deployment to complete
-8. **Copy the backend URL** (e.g., `https://imposter-backend.onrender.com`)
+7. Wait for deployment to complete (this takes a few minutes)
+8. **Find your backend URL**: 
+   - Once deployed, you'll see your service dashboard
+   - The URL is displayed at the top of the page, next to your service name
+   - It will look like: `https://imposter-backend-xxxx.onrender.com`
+   - You can also find it in the "Settings" tab under "Service Details"
+   - **Copy this URL** - you'll need it for the frontend configuration
 
 ## Step 3: Deploy Frontend to Render
 
@@ -61,16 +66,23 @@ This guide will help you deploy your Imposter game to Render so you can play onl
    - `VITE_SOCKET_URL` = Your backend URL (same as above)
 
 5. Click "Create Static Site"
-6. Wait for deployment to complete
-7. **Copy the frontend URL** (e.g., `https://imposter-frontend.onrender.com`)
+6. Wait for deployment to complete (this takes a few minutes)
+7. **Find your frontend URL**:
+   - Once deployed, you'll see your static site dashboard
+   - The URL is displayed at the top of the page, next to your site name
+   - It will look like: `https://imposter-frontend-xxxx.onrender.com`
+   - You can also find it in the "Settings" tab under "Site Details"
+   - **Copy this URL** - you'll need it for the backend CORS configuration
 
 ## Step 4: Update Backend CORS
 
-1. Go back to your backend service in Render
-2. Go to "Environment" tab
-3. Update `CORS_ORIGIN` to your frontend URL (e.g., `https://imposter-frontend.onrender.com`)
-4. Click "Save Changes"
-5. Render will automatically redeploy
+1. Go back to your backend service in Render dashboard
+2. Click on the "Environment" tab (in the left sidebar)
+3. Find the `CORS_ORIGIN` variable (or add it if you left it empty)
+4. Set the value to your **frontend URL** (the one you copied in Step 3)
+   - Example: `https://imposter-frontend-xxxx.onrender.com`
+5. Click "Save Changes"
+6. Render will automatically redeploy your backend (this takes a minute or two)
 
 ## Step 5: Test Your Deployment
 

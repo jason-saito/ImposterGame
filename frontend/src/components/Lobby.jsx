@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { motion } from 'framer-motion';
 import { API_URL } from '../config';
 
 export default function Lobby() {
+  const { code } = useParams();
   const {
     gameCode,
     players,
@@ -13,7 +14,9 @@ export default function Lobby() {
     setSettings,
     startGame,
     resetGame,
-    phase
+    phase,
+    restartGame,
+    endGame
   } = useGameStore();
 
   const navigate = useNavigate();
@@ -26,6 +29,14 @@ export default function Lobby() {
     resetGame();
     navigate('/');
   };
+
+  // Handle URL code parameter - if code is in URL but player hasn't joined, redirect to landing
+  useEffect(() => {
+    if (code && !gameCode) {
+      // Code in URL but not in room - redirect to landing with code
+      navigate(`/?code=${code}`);
+    }
+  }, [code, gameCode, navigate]);
 
   useEffect(() => {
     if (phase === 'clue') {
@@ -46,6 +57,14 @@ export default function Lobby() {
   }, [players.length]);
 
   const handleStartGame = () => {
+    console.log('handleStartGame called', { 
+      playersCount: players.length, 
+      isHost, 
+      phase, 
+      category: settings.category,
+      customWordsCount: settings.customWords?.length 
+    });
+
     if (players.length < 3) {
       alert('You need at least 3 players to start the game');
       return;
@@ -53,6 +72,13 @@ export default function Lobby() {
 
     if (settings.category === 'custom' && (!settings.customWords || settings.customWords.length === 0)) {
       alert('Please add at least one custom word');
+      return;
+    }
+
+    // Check connected players
+    const connectedPlayers = players.filter(p => p.connected);
+    if (connectedPlayers.length < 3) {
+      alert(`You need at least 3 connected players to start. Currently ${connectedPlayers.length} player(s) are connected.`);
       return;
     }
 
@@ -154,9 +180,22 @@ export default function Lobby() {
           <div className="text-7xl font-black text-purple-600 tracking-widest mb-4">
             {gameCode}
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-4">
             Share this code with your friends to join!
           </p>
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/lobby/${gameCode}`;
+              navigator.clipboard.writeText(url).then(() => {
+                alert('Game URL copied to clipboard!');
+              }).catch(() => {
+                alert('Failed to copy URL. Please share the code manually.');
+              });
+            }}
+            className="bg-purple-500 text-white font-bold px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            📋 Copy Game URL
+          </button>
         </motion.div>
 
         {/* Players List */}
@@ -259,6 +298,10 @@ export default function Lobby() {
                   <option value="food">Food</option>
                   <option value="objects">Objects</option>
                   <option value="places">Places</option>
+                  <option value="sports">Sports</option>
+                  <option value="colors">Colors</option>
+                  <option value="movies">Movies</option>
+                  <option value="nature">Nature</option>
                   <option value="custom">Custom Words</option>
                 </select>
               </div>
@@ -344,8 +387,8 @@ export default function Lobby() {
           </motion.div>
         )}
 
-        {/* Start Game Button (Host Only) */}
-        {isHost && (
+        {/* Game Control Buttons (Host Only) */}
+        {isHost && phase === 'lobby' && (
           <motion.button
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -357,6 +400,29 @@ export default function Lobby() {
           >
             START GAME
           </motion.button>
+        )}
+
+        {/* End Game and Restart Game Buttons (Host Only, when game is in progress) */}
+        {isHost && phase !== 'lobby' && phase !== 'gameOver' && (
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="space-y-4"
+          >
+            <button
+              onClick={endGame}
+              className="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white text-xl font-black py-4 rounded-2xl shadow-xl hover:from-red-600 hover:to-pink-700 transition-all"
+            >
+              END GAME
+            </button>
+            <button
+              onClick={restartGame}
+              className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white text-xl font-black py-4 rounded-2xl shadow-xl hover:from-blue-600 hover:to-cyan-700 transition-all"
+            >
+              RESTART GAME (KEEP LOBBY)
+            </button>
+          </motion.div>
         )}
 
         {/* Waiting Message (Players) */}

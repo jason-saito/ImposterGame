@@ -29,15 +29,56 @@ const rooms = new Map();
 
 // Word categories
 const wordCategories = {
-  animals: ['elephant', 'giraffe', 'penguin', 'kangaroo', 'dolphin', 'octopus', 'butterfly', 'rhinoceros'],
-  food: ['pizza', 'sushi', 'taco', 'burger', 'pasta', 'croissant', 'ramen', 'burrito'],
-  objects: ['umbrella', 'telescope', 'guitar', 'camera', 'skateboard', 'backpack', 'laptop', 'headphones'],
-  places: ['beach', 'mountain', 'library', 'museum', 'airport', 'stadium', 'theater', 'castle']
+  animals: [
+    'elephant', 'giraffe', 'penguin', 'kangaroo', 'dolphin', 'octopus', 'butterfly', 'rhinoceros', 'tiger', 'panda', 'zebra', 'whale',
+    'lion', 'cheetah', 'hippopotamus', 'gorilla', 'chimpanzee', 'sloth', 'koala', 'ostrich', 'flamingo', 'eagle', 'falcon', 'hawk',
+    'shark', 'seal', 'walrus', 'otter', 'fox', 'wolf', 'bear', 'camel', 'alligator', 'crocodile', 'jellyfish', 'starfish', 'lobster',
+    'crab', 'squid', 'anteater', 'armadillo', 'buffalo', 'moose', 'reindeer', 'horse', 'donkey', 'goat', 'sheep', 'pig', 'cow', 'chicken',
+    'rooster', 'peacock', 'sparrow', 'parrot', 'toucan', 'swan', 'turkey', 'beaver', 'badger', 'hedgehog', 'porcupine', 'raccoon',
+    'lemur', 'meerkat', 'hyena', 'mongoose'
+  ],
+  food: [
+    'pizza', 'sushi', 'taco', 'burger', 'pasta', 'croissant', 'ramen', 'burrito', 'sandwich', 'salad', 'soup', 'donut',
+    'steak', 'fried rice', 'pancakes', 'waffles', 'ice cream', 'chocolate', 'cupcake', 'lasagna', 'dumplings', 'noodles',
+    'quesadilla', 'pretzel', 'hot dog', 'popcorn', 'cereal', 'oatmeal', 'smoothie', 'cookie', 'brownie', 'macarons',
+    'spring rolls', 'pad thai', 'curry', 'paella', 'kebab', 'shawarma', 'gnocchi', 'risotto', 'bagel', 'fajitas', 'kimchi',
+    'bibimbap', 'pho', 'samosa'
+  ],
+  objects: [
+    'umbrella', 'telescope', 'guitar', 'camera', 'skateboard', 'backpack', 'laptop', 'headphones', 'watch', 'phone', 'book', 'key',
+    'wallet', 'flashlight', 'calculator', 'speaker', 'microphone', 'pillow', 'blanket', 'chair', 'table', 'mirror', 'clock', 'pen',
+    'pencil', 'marker', 'notebook', 'scissors', 'ruler', 'remote', 'charger', 'helmet', 'glasses', 'bottle', 'mug', 'suitcase',
+    'ladder', 'drill', 'hammer', 'wrench', 'globe', 'lantern', 'binoculars', 'toaster', 'microwave', 'vacuum', 'basket'
+  ],
+  places: [
+    'beach', 'mountain', 'library', 'museum', 'airport', 'stadium', 'theater', 'castle', 'park', 'school', 'hospital', 'restaurant',
+    'zoo', 'aquarium', 'forest', 'desert', 'island', 'city', 'village', 'bridge', 'harbor', 'hotel', 'mall', 'market', 'farm',
+    'campground', 'palace', 'temple', 'church', 'university', 'playground', 'subway', 'station', 'amusement park', 'skyscraper',
+    'cafe', 'bakery', 'train station', 'bus stop', 'pier', 'canyon', 'valley', 'waterfall'
+  ],
+  sports: [
+    'basketball', 'football', 'soccer', 'tennis', 'baseball', 'swimming', 'cycling', 'running', 'golf', 'volleyball', 'hockey', 'boxing',
+    'badminton', 'table tennis', 'rugby', 'cricket', 'skiing', 'snowboarding', 'surfing', 'skating', 'wrestling', 'archery', 'fencing',
+    'rowing', 'kayaking', 'canoeing', 'climbing', 'gymnastics', 'triathlon', 'martial arts', 'lacrosse', 'handball', 'softball'
+  ],
+  colors: [
+    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'black', 'white', 'brown', 'gray', 'gold',
+    'silver', 'maroon', 'turquoise', 'teal', 'navy', 'beige', 'lavender', 'lime', 'coral', 'magenta', 'cyan'
+  ],
+  movies: [
+    'action', 'comedy', 'horror', 'drama', 'sci-fi', 'romance', 'thriller', 'fantasy', 'animation', 'documentary', 'western', 'musical',
+    'crime', 'mystery', 'adventure', 'biography', 'history', 'war', 'family', 'superhero', 'noir'
+  ],
+  nature: [
+    'tree', 'flower', 'ocean', 'forest', 'river', 'cloud', 'sun', 'moon', 'star', 'rain', 'snow', 'wind',
+    'lightning', 'mountain', 'desert', 'cave', 'volcano', 'waterfall', 'meadow', 'leaf', 'sand', 'stone', 'fog', 'thunder',
+    'cliff', 'lake', 'reef', 'tide', 'breeze', 'ice', 'glacier', 'field'
+  ]
 };
 
-// Helper function to generate 6-digit game code
+// Helper function to generate 2-digit game code
 function generateGameCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(10 + Math.random() * 90).toString().padStart(2, '0');
 }
 
 // Helper function to get unique game code
@@ -74,33 +115,26 @@ function getSecureRandomInt(max) {
   return Math.floor(combined * max);
 }
 
-// Helper function to select random imposters
+// Helper function to select random imposters (improved Fisher-Yates shuffle)
 function selectImposters(players, numImposters) {
-  const selectedIndices = new Set();
-  const imposterIds = [];
-
   console.log(`🎲 Selecting ${numImposters} imposter(s) from ${players.length} players:`);
   players.forEach((p, idx) => console.log(`   [${idx}] ${p.name}`));
 
-  // First, create a shuffled array for additional randomness
-  const shuffledPlayers = [...players];
-  for (let i = shuffledPlayers.length - 1; i > 0; i--) {
+  // Use Fisher-Yates shuffle for better randomization
+  const shuffled = [...players];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    // Use crypto.getRandomValues if available, otherwise Math.random
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffledPlayers[i], shuffledPlayers[j]] = [shuffledPlayers[j], shuffledPlayers[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  // Then randomly select from shuffled array
-  let attempts = 0;
-  while (selectedIndices.size < numImposters && attempts < 1000) {
-    attempts++;
-    const randomIndex = getSecureRandomInt(players.length);
-
-    if (!selectedIndices.has(randomIndex)) {
-      selectedIndices.add(randomIndex);
-      imposterIds.push(shuffledPlayers[randomIndex].playerId);
-      console.log(`   ✓ Selected index ${randomIndex}: ${shuffledPlayers[randomIndex].name}`);
-    }
-  }
+  // Select first numImposters from shuffled array
+  const imposterIds = shuffled.slice(0, numImposters).map(p => p.playerId);
+  
+  console.log(`   ✓ Selected imposters: ${imposterIds.map(id => {
+    const player = players.find(p => p.playerId === id);
+    return player?.name;
+  }).join(', ')}`);
 
   return imposterIds;
 }
@@ -131,7 +165,7 @@ app.post('/rooms', (req, res) => {
       category: 'animals',
       maxPlayers: 10,
       customWords: [],
-      gameMode: 'online' // 'online' or 'local'
+      gameMode: 'local' // 'online' or 'local' - default to local
     },
     gameState: {
       phase: 'lobby',
@@ -151,6 +185,25 @@ app.post('/rooms', (req, res) => {
   console.log(`   Active rooms: ${rooms.size}`);
 
   res.json({ roomId, gameCode, hostPlayer });
+});
+
+// Get room by game code (for URL joining)
+app.get('/rooms/code/:gameCode', (req, res) => {
+  const { gameCode } = req.params;
+  const room = Array.from(rooms.values()).find(r => r.gameCode === gameCode);
+
+  if (!room) {
+    return res.status(404).json({ error: 'Game not found' });
+  }
+
+  // Return minimal public data
+  res.json({
+    roomId: room.roomId,
+    gameCode: room.gameCode,
+    status: room.status,
+    playerCount: room.players.length,
+    maxPlayers: room.settings.maxPlayers
+  });
 });
 
 // Join an existing room
@@ -276,9 +329,13 @@ io.on('connection', (socket) => {
     // If game is in progress, send player their role
     if (room.gameState.phase !== 'lobby') {
       const isImposter = room.gameState.imposterIds.includes(playerId);
+      const otherImpostersCount = isImposter ? room.gameState.imposterIds.length - 1 : 0;
       socket.emit('ROLE_INFO', {
         role: isImposter ? 'imposter' : 'civilian',
-        word: isImposter ? null : room.gameState.secretWord
+        word: isImposter ? null : room.gameState.secretWord,
+        category: room.settings.category,
+        numImposters: room.gameState.imposterIds.length,
+        otherImpostersCount: otherImpostersCount
       });
     }
   });
@@ -310,6 +367,13 @@ io.on('connection', (socket) => {
     // Select secret word
     const secretWord = getRandomWord(room.settings.category, room.settings.customWords);
 
+    // Randomize starting player order by shuffling active players
+    const shuffledActivePlayers = [...activePlayers];
+    for (let i = shuffledActivePlayers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledActivePlayers[i], shuffledActivePlayers[j]] = [shuffledActivePlayers[j], shuffledActivePlayers[i]];
+    }
+
     // Update game state
     room.gameState = {
       phase: 'clue',
@@ -319,23 +383,28 @@ io.on('connection', (socket) => {
       votes: {},
       readyPlayers: [],
       eliminatedPlayer: null,
-      roundNumber: 1
+      roundNumber: 1,
+      playerOrder: shuffledActivePlayers.map(p => p.playerId) // Store randomized order
     };
     room.status = 'playing';
 
     // Notify everyone phase changed
     io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
 
-    // Send role info to each player individually
+    // Send role info to each player individually with additional context
     room.players.forEach(player => {
       const playerSocket = Array.from(io.sockets.sockets.values())
         .find(s => s.data.playerId === player.playerId);
 
       if (playerSocket) {
         const isImposter = imposterIds.includes(player.playerId);
+        const otherImpostersCount = isImposter ? imposterIds.length - 1 : 0;
         playerSocket.emit('ROLE_INFO', {
           role: isImposter ? 'imposter' : 'civilian',
-          word: isImposter ? null : secretWord
+          word: isImposter ? null : secretWord,
+          category: room.settings.category,
+          numImposters: imposterIds.length,
+          otherImpostersCount: otherImpostersCount
         });
       }
     });
@@ -470,6 +539,12 @@ io.on('connection', (socket) => {
     const voter = room.players.find(p => p.playerId === voterId);
     if (voter?.eliminated) {
       socket.emit('ERROR', { message: 'Eliminated players cannot vote' });
+      return;
+    }
+
+    // Check if voter is an imposter - imposters cannot vote
+    if (room.gameState.imposterIds.includes(voterId)) {
+      socket.emit('ERROR', { message: 'Imposters cannot vote' });
       return;
     }
 
@@ -612,49 +687,182 @@ io.on('connection', (socket) => {
           console.log(`🔄 Civilian eliminated! Game continues. ${remainingImpostersCount} imposter(s) vs civilians. Starting next round...`);
         }
 
-        setTimeout(() => {
-          // Reset for next round (keep same word AND same imposters!)
-          room.gameState.clues = [];
-          room.gameState.votes = {};
-          room.gameState.readyPlayers = [];
-          room.gameState.eliminatedPlayer = null;
-          room.gameState.roundNumber += 1;
-          room.gameState.phase = 'clue';
-          // NOTE: imposterIds and secretWord are NOT reset - they persist for the entire game
-
-          const activePlayers = room.players.filter(p => p.connected && !p.eliminated);
-          console.log(`🔄 Starting round ${room.gameState.roundNumber}`);
-          console.log(`   Phase set to: ${room.gameState.phase}`);
-          console.log(`   Secret word: ${room.gameState.secretWord}`);
-          console.log(`   Imposters (unchanged): ${room.gameState.imposterIds.length}`);
-          console.log(`   Active players: ${activePlayers.length}`);
-          console.log(`   Clues reset: ${room.gameState.clues.length}`);
-
-          // Notify everyone of the new round
-          io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
-          io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
-
-          // Send updated role info to each player
-          room.players.forEach(player => {
-            // Skip eliminated player
-            if (player.playerId === eliminatedPlayerId) return;
-
-            const playerSocket = Array.from(io.sockets.sockets.values())
-              .find(s => s.data.playerId === player.playerId);
-
-            if (playerSocket) {
-              const isImposter = room.gameState.imposterIds.includes(player.playerId);
-              playerSocket.emit('ROLE_INFO', {
-                role: isImposter ? 'imposter' : 'civilian',
-                word: isImposter ? null : room.gameState.secretWord
-              });
-            }
-          });
-
-          console.log(`✅ Round ${room.gameState.roundNumber} setup complete. Ready for clues.`);
-        }, 5000); // Show reveal for 5 seconds before next round
+        // Don't auto-advance - wait for host to manually start next round
+        // The reveal phase will show a button for the host to continue
       }
     }
+  });
+
+  socket.on('NEXT_ROUND', ({ roomId, playerId }) => {
+    const room = rooms.get(roomId);
+
+    if (!room) {
+      socket.emit('ERROR', { message: 'Room not found' });
+      return;
+    }
+
+    // Only host can start next round
+    const player = room.players.find(p => p.playerId === playerId);
+    if (!player || !player.isHost) {
+      socket.emit('ERROR', { message: 'Only the host can start the next round' });
+      return;
+    }
+
+    if (room.gameState.phase !== 'reveal') {
+      socket.emit('ERROR', { message: 'Not in reveal phase' });
+      return;
+    }
+
+    // Reset for next round (keep same word AND same imposters!)
+    room.gameState.clues = [];
+    room.gameState.votes = {};
+    room.gameState.readyPlayers = [];
+    room.gameState.eliminatedPlayer = null;
+    room.gameState.roundNumber += 1;
+    room.gameState.phase = 'clue';
+
+    // Re-randomize player order for this round
+    const activePlayers = room.players.filter(p => p.connected && !p.eliminated);
+    const shuffledActivePlayers = [...activePlayers];
+    for (let i = shuffledActivePlayers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledActivePlayers[i], shuffledActivePlayers[j]] = [shuffledActivePlayers[j], shuffledActivePlayers[i]];
+    }
+    room.gameState.playerOrder = shuffledActivePlayers.map(p => p.playerId);
+
+    console.log(`🔄 Starting round ${room.gameState.roundNumber}`);
+
+    // Notify everyone of the new round
+    io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
+    io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
+
+    // Send updated role info to each player
+    room.players.forEach(player => {
+      if (player.eliminated) return;
+
+      const playerSocket = Array.from(io.sockets.sockets.values())
+        .find(s => s.data.playerId === player.playerId);
+
+      if (playerSocket) {
+        const isImposter = room.gameState.imposterIds.includes(player.playerId);
+        const otherImpostersCount = isImposter ? room.gameState.imposterIds.length - 1 : 0;
+        playerSocket.emit('ROLE_INFO', {
+          role: isImposter ? 'imposter' : 'civilian',
+          word: isImposter ? null : room.gameState.secretWord,
+          category: room.settings.category,
+          numImposters: room.gameState.imposterIds.length,
+          otherImpostersCount: otherImpostersCount
+        });
+      }
+    });
+  });
+
+  socket.on('END_GAME', ({ roomId, playerId }) => {
+    const room = rooms.get(roomId);
+
+    if (!room) {
+      socket.emit('ERROR', { message: 'Room not found' });
+      return;
+    }
+
+    // Only host can end game
+    const player = room.players.find(p => p.playerId === playerId);
+    if (!player || !player.isHost) {
+      socket.emit('ERROR', { message: 'Only the host can end the game' });
+      return;
+    }
+
+    // Determine winners based on current state
+    const activePlayers = room.players.filter(p => p.connected && !p.eliminated);
+    const remainingImposters = room.gameState.imposterIds.filter(
+      id => !room.players.find(p => p.playerId === id)?.eliminated
+    );
+    const remainingCivilians = activePlayers.filter(
+      p => !room.gameState.imposterIds.includes(p.playerId)
+    ).length;
+
+    let winners = 'imposters';
+    if (remainingImposters.length === 0) {
+      winners = 'civilians';
+    } else if (remainingImposters.length < remainingCivilians) {
+      winners = 'civilians'; // Civilians win if they outnumber imposters
+    }
+
+    room.status = 'finished';
+    io.to(roomId).emit('GAME_OVER', {
+      winners,
+      imposterIds: room.gameState.imposterIds,
+      secretWord: room.gameState.secretWord
+    });
+  });
+
+  socket.on('RESTART_GAME', ({ roomId, playerId }) => {
+    const room = rooms.get(roomId);
+
+    if (!room) {
+      socket.emit('ERROR', { message: 'Room not found' });
+      return;
+    }
+
+    // Only host can restart game
+    const player = room.players.find(p => p.playerId === playerId);
+    if (!player || !player.isHost) {
+      socket.emit('ERROR', { message: 'Only the host can restart the game' });
+      return;
+    }
+
+    // Reset all players (un-eliminate them)
+    room.players.forEach(p => {
+      p.eliminated = false;
+    });
+
+    // Reset game state but keep room and players
+    const activePlayers = room.players.filter(p => p.connected);
+    const imposterIds = selectImposters(activePlayers, room.settings.numImposters);
+    const secretWord = getRandomWord(room.settings.category, room.settings.customWords);
+
+    // Randomize starting player order
+    const shuffledActivePlayers = [...activePlayers];
+    for (let i = shuffledActivePlayers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledActivePlayers[i], shuffledActivePlayers[j]] = [shuffledActivePlayers[j], shuffledActivePlayers[i]];
+    }
+
+    room.gameState = {
+      phase: 'clue',
+      secretWord,
+      imposterIds,
+      clues: [],
+      votes: {},
+      readyPlayers: [],
+      eliminatedPlayer: null,
+      roundNumber: 1,
+      playerOrder: shuffledActivePlayers.map(p => p.playerId)
+    };
+    room.status = 'playing';
+
+    // Notify everyone phase changed
+    io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
+
+    // Send role info to each player individually with additional context
+    room.players.forEach(player => {
+      const playerSocket = Array.from(io.sockets.sockets.values())
+        .find(s => s.data.playerId === player.playerId);
+
+      if (playerSocket) {
+        const isImposter = imposterIds.includes(player.playerId);
+        const otherImpostersCount = isImposter ? imposterIds.length - 1 : 0;
+        playerSocket.emit('ROLE_INFO', {
+          role: isImposter ? 'imposter' : 'civilian',
+          word: isImposter ? null : secretWord,
+          category: room.settings.category,
+          numImposters: imposterIds.length,
+          otherImpostersCount: otherImpostersCount
+        });
+      }
+    });
+
+    io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
   });
 
   socket.on('disconnect', () => {

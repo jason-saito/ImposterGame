@@ -1,7 +1,21 @@
 import { motion } from 'framer-motion';
+import { useGameStore } from '../store/gameStore';
 
 export default function RoleReveal({ role, secretWord }) {
+  const { category, numImposters, otherImpostersCount } = useGameStore();
   const isImposter = role === 'imposter';
+  
+  const categoryNames = {
+    animals: 'Animals',
+    food: 'Food',
+    objects: 'Objects',
+    places: 'Places',
+    sports: 'Sports',
+    colors: 'Colors',
+    movies: 'Movies',
+    nature: 'Nature',
+    custom: 'Custom'
+  };
 
   return (
     <motion.div
@@ -39,14 +53,31 @@ export default function RoleReveal({ role, secretWord }) {
         </motion.div>
 
         {isImposter ? (
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-2xl text-white font-bold"
+            className="space-y-3"
           >
-            Try to blend in!
-          </motion.p>
+            <p className="text-2xl text-white font-bold">
+              Try to blend in!
+            </p>
+            {category && (
+              <div className="bg-white bg-opacity-20 rounded-xl p-4">
+                <p className="text-lg text-white font-semibold mb-1">
+                  Category: {categoryNames[category] || category}
+                </p>
+                <p className="text-lg text-white font-semibold">
+                  Total Imposters: {numImposters}
+                </p>
+                {otherImpostersCount > 0 && (
+                  <p className="text-lg text-white font-semibold mt-2">
+                    Other Imposters: {otherImpostersCount}
+                  </p>
+                )}
+              </div>
+            )}
+          </motion.div>
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
@@ -56,11 +87,21 @@ export default function RoleReveal({ role, secretWord }) {
             <p className="text-xl text-white font-bold mb-4">
               The secret word is:
             </p>
-            <div className="bg-white bg-opacity-20 rounded-2xl p-6">
+            <div className="bg-white bg-opacity-20 rounded-2xl p-6 mb-4">
               <p className="text-5xl font-black text-white">
                 {secretWord?.toUpperCase()}
               </p>
             </div>
+            {category && (
+              <div className="bg-white bg-opacity-20 rounded-xl p-4">
+                <p className="text-lg text-white font-semibold">
+                  Category: {categoryNames[category] || category}
+                </p>
+                <p className="text-lg text-white font-semibold">
+                  Total Imposters: {numImposters}
+                </p>
+              </div>
+            )}
           </motion.div>
         )}
 

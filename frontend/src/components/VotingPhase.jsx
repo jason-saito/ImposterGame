@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 
 export default function VotingPhase() {
-  const { players, playerId, castVote, votes } = useGameStore();
+  const { players, playerId, castVote, votes, role } = useGameStore();
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [hasVoted, setHasVoted] = useState(false);
+  const isImposter = role === 'imposter';
 
   // Reset voting state when component mounts (important for re-voting after ties and new rounds)
   useEffect(() => {
@@ -22,6 +23,11 @@ export default function VotingPhase() {
   }, [votes]);
 
   const handleVote = () => {
+    if (isImposter) {
+      alert('Imposters cannot vote');
+      return;
+    }
+
     if (!selectedPlayer) {
       alert('Please select a player to vote for');
       return;
@@ -54,7 +60,21 @@ export default function VotingPhase() {
           </p>
         </motion.div>
 
-        {!hasVoted ? (
+        {isImposter ? (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl shadow-2xl p-12 text-center"
+          >
+            <div className="text-6xl mb-4">🚫</div>
+            <h3 className="text-3xl font-black text-gray-800 mb-4">
+              Imposters Cannot Vote
+            </h3>
+            <p className="text-xl text-gray-600">
+              Waiting for other players to vote...
+            </p>
+          </motion.div>
+        ) : !hasVoted ? (
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
