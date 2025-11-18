@@ -16,7 +16,12 @@ export default function Lobby() {
     resetGame,
     phase,
     restartGame,
-    endGame
+    endGame,
+    setPlayerId,
+    setPlayerName: savePlayerName,
+    setRoomData,
+    joinRoom,
+    initializeSocket
   } = useGameStore();
 
   const navigate = useNavigate();
@@ -24,6 +29,11 @@ export default function Lobby() {
   const [showCustomWords, setShowCustomWords] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importText, setImportText] = useState('');
+
+  // Join form state for URL visitors
+  const [showJoinForm, setShowJoinForm] = useState(false);
+  const [playerName, setPlayerName] = useState('');
+  const [joining, setJoining] = useState(false);
 
   const handleBackToHome = () => {
     resetGame();
@@ -33,13 +43,50 @@ export default function Lobby() {
     window.history.replaceState({}, '', '/');
   };
 
-  // Handle URL code parameter - if code is in URL but player hasn't joined, redirect to landing
+  // Handle URL code parameter - if code is in URL but player hasn't joined, show join form
   useEffect(() => {
     if (code && !gameCode) {
-      // Code in URL but not in room - redirect to landing with code
-      navigate(`/?code=${code}`);
+      // Code in URL but not in room - show join form
+      setShowJoinForm(true);
     }
-  }, [code, gameCode, navigate]);
+  }, [code, gameCode]);
+
+  const handleJoinFromURL = async () => {
+    if (!playerName.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+
+    setJoining(true);
+    try {
+      const response = await fetch(`${API_URL}/rooms/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameCode: code, playerName })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error);
+      }
+
+      const data = await response.json();
+
+      setPlayerId(data.player.playerId);
+      savePlayerName(playerName);
+      setRoomData(data.roomId, code, false);
+
+      initializeSocket();
+      joinRoom(data.roomId, data.player.playerId);
+
+      setShowJoinForm(false);
+    } catch (error) {
+      console.error('Error joining room:', error);
+      alert(error.message || 'Failed to join room. Please try again.');
+    } finally {
+      setJoining(false);
+    }
+  };
 
   useEffect(() => {
     if (phase === 'clue') {
@@ -167,6 +214,60 @@ export default function Lobby() {
     setImportText('');
     alert(`Successfully imported ${words.length} word(s)!`);
   };
+
+  // If user is joining via URL, show join form
+  if (showJoinForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="max-w-md w-full"
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-6xl font-bold text-white mb-4">IMPOSTER</h1>
+            <p className="text-xl text-purple-100">Join Game</p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-2xl p-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Game Code</h2>
+            <div className="text-6xl font-black text-purple-600 tracking-widest mb-6 text-center">
+              {code}
+            </div>
+
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Enter your name"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleJoinFromURL()}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-lg"
+                maxLength={20}
+                autoFocus
+              />
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleJoinFromURL}
+                  disabled={joining}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl font-bold py-4 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 shadow-lg"
+                >
+                  {joining ? 'Joining...' : 'Join Game'}
+                </button>
+                <button
+                  onClick={handleBackToHome}
+                  className="px-6 bg-gray-300 text-gray-700 font-bold py-4 rounded-xl hover:bg-gray-400 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-500 p-4">
