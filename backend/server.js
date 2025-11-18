@@ -308,7 +308,8 @@ function getRoomPublicData(room) {
     gameState: {
       phase: room.gameState.phase,
       clues: room.gameState.clues,
-      roundNumber: room.gameState.roundNumber
+      roundNumber: room.gameState.roundNumber,
+      playerOrder: room.gameState.playerOrder || []
     }
   };
 }

@@ -34,6 +34,7 @@ export const useGameStore = create((set, get) => ({
   category: null,
   numImposters: 0,
   otherImpostersCount: 0,
+  playerOrder: [],
 
   // Settings
   settings: {
@@ -102,7 +103,8 @@ export const useGameStore = create((set, get) => ({
       isHost: false,
       category: null,
       numImposters: 0,
-      otherImpostersCount: 0
+      otherImpostersCount: 0,
+      playerOrder: []
     });
   },
 
@@ -127,7 +129,8 @@ export const useGameStore = create((set, get) => ({
       set({
         players: room.players,
         settings: room.settings,
-        clues: room.gameState?.clues || []
+        clues: room.gameState?.clues || [],
+        playerOrder: room.gameState?.playerOrder || []
       });
     });
 
@@ -150,7 +153,8 @@ export const useGameStore = create((set, get) => ({
           imposterIds: [],
           category: null,
           numImposters: 0,
-          otherImpostersCount: 0
+          otherImpostersCount: 0,
+          playerOrder: []
         });
       }
     });

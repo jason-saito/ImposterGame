@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 
 export default function CluePhase() {
-  const { role, secretWord, clues, submitClue, playerId, settings } = useGameStore();
+  const { role, secretWord, clues, submitClue, playerId, settings, players, playerOrder } = useGameStore();
   const [clueText, setClueText] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
@@ -24,6 +24,23 @@ export default function CluePhase() {
   const isImposter = role === 'imposter';
   const hasSubmitted = submitted || clues.some(c => c.playerId === playerId);
   const isLocalMode = settings.gameMode === 'local';
+
+  // Get the first player in the randomized order (who should start)
+  const getStartingPlayerName = () => {
+    if (playerOrder && playerOrder.length > 0) {
+      const firstPlayerId = playerOrder[0];
+      const firstPlayer = players.find(p => p.playerId === firstPlayerId && !p.eliminated);
+      return firstPlayer?.name || null;
+    }
+    // Fallback: if no playerOrder, pick a random active player
+    const activePlayers = players.filter(p => !p.eliminated);
+    if (activePlayers.length > 0) {
+      return activePlayers[Math.floor(Math.random() * activePlayers.length)].name;
+    }
+    return null;
+  };
+
+  const startingPlayerName = getStartingPlayerName();
 
   const handleSubmit = () => {
     // Allow empty clues in local mode
@@ -99,6 +116,14 @@ export default function CluePhase() {
               </>
             ) : (
               <div className="mb-6 text-center">
+                <p className="text-2xl font-bold text-gray-800 mb-2">
+                  Ready to Continue?
+                </p>
+                {startingPlayerName && (
+                  <p className="text-xl font-bold text-purple-600 mb-4">
+                    {startingPlayerName} should start with the first clue
+                  </p>
+                )}
                 <p className="text-xl text-gray-600 mb-4">
                   Everyone ready to share their clues?
                 </p>
