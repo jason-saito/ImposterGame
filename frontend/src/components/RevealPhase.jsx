@@ -94,7 +94,7 @@ export default function RevealPhase() {
                     onClick={nextRound}
                     className="mt-4 w-full bg-white text-orange-500 text-xl font-black py-4 rounded-xl hover:bg-orange-50 transition-all shadow-lg"
                   >
-                    DISCUSS RESULTS
+                    GIVE NEW HINTS
                   </button>
                 ) : (
                   <p className="text-xl text-white opacity-90">
@@ -112,7 +112,7 @@ export default function RevealPhase() {
                     onClick={nextRound}
                     className="mt-4 w-full bg-white text-orange-500 text-xl font-black py-4 rounded-xl hover:bg-orange-50 transition-all shadow-lg"
                   >
-                    DISCUSS RESULTS
+                    GIVE NEW HINTS
                   </button>
                 ) : (
                   <p className="text-xl text-white opacity-90">
