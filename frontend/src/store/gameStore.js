@@ -108,6 +108,18 @@ export const useGameStore = create((set, get) => ({
   initializeSocket: () => {
     const { roomId, playerId } = get();
 
+    // Remove existing listeners to prevent duplicates
+    socket.off('ROOM_UPDATED');
+    socket.off('PHASE_CHANGED');
+    socket.off('ROLE_INFO');
+    socket.off('CLUE_SUBMITTED');
+    socket.off('VOTE_UPDATE');
+    socket.off('READY_UPDATE');
+    socket.off('VOTE_TIE');
+    socket.off('VOTE_RESULTS');
+    socket.off('GAME_OVER');
+    socket.off('ERROR');
+
     socket.on('ROOM_UPDATED', ({ room }) => {
       console.log('📥 ROOM_UPDATED received. Clues:', room.gameState?.clues);
       set({
@@ -182,6 +194,23 @@ export const useGameStore = create((set, get) => ({
       alert('Error: Not connected to a room. Please try refreshing the page.');
       return;
     }
+    
+    // Check if socket is connected
+    if (!socket.connected) {
+      console.error('Socket not connected. Attempting to reconnect...');
+      socket.connect();
+      // Wait a moment for connection
+      setTimeout(() => {
+        if (socket.connected) {
+          console.log('Socket reconnected. Starting game...');
+          socket.emit('START_GAME', { roomId });
+        } else {
+          alert('Error: Cannot connect to server. Please check if the backend is running and refresh the page.');
+        }
+      }, 1000);
+      return;
+    }
+    
     console.log('Starting game with roomId:', roomId);
     socket.emit('START_GAME', { roomId });
   },
