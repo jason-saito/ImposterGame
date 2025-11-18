@@ -557,7 +557,10 @@ io.on('connection', (socket) => {
   socket.on('CAST_VOTE', ({ roomId, voterId, targetId }) => {
     const room = rooms.get(roomId);
 
+    console.log(`📝 CAST_VOTE received - Room: ${roomId}, Voter: ${voterId}, Target: ${targetId}`);
+
     if (!room) {
+      console.log(`❌ CAST_VOTE rejected - Room not found`);
       socket.emit('ERROR', { message: 'Room not found' });
       return;
     }
@@ -571,23 +574,31 @@ io.on('connection', (socket) => {
     // Check if player is eliminated
     const voter = room.players.find(p => p.playerId === voterId);
     if (!voter) {
+      console.log(`❌ CAST_VOTE rejected - Voter not found: ${voterId}`);
       socket.emit('ERROR', { message: 'Player not found' });
       return;
     }
 
+    // Check if voter is an imposter (for logging only - imposters CAN vote)
+    const isImposter = room.gameState.imposterIds.includes(voterId);
+    console.log(`👤 Voter: ${voter.name}, Is Imposter: ${isImposter}, Eliminated: ${voter.eliminated}, Connected: ${voter.connected}`);
+
     if (voter.eliminated) {
+      console.log(`❌ CAST_VOTE rejected - Voter is eliminated`);
       socket.emit('ERROR', { message: 'Eliminated players cannot vote' });
       return;
     }
 
     if (!voter.connected) {
+      console.log(`❌ CAST_VOTE rejected - Voter is disconnected`);
       socket.emit('ERROR', { message: 'Disconnected players cannot vote' });
       return;
     }
 
-    // Record vote (imposters can now vote - all active players can vote)
+    // Record vote - ALL active players can vote (civilians AND imposters)
     room.gameState.votes[voterId] = targetId;
-    console.log(`✅ Vote recorded - Voter: ${voter.name}, Target: ${room.players.find(p => p.playerId === targetId)?.name || targetId}`);
+    const targetPlayer = room.players.find(p => p.playerId === targetId);
+    console.log(`✅ Vote recorded - Voter: ${voter.name} (${isImposter ? 'IMPOSTER' : 'CIVILIAN'}), Target: ${targetPlayer?.name || targetId}`);
 
     // Emit vote progress (include all active players - civilians AND imposters)
     const activePlayers = room.players.filter(p => p.connected && !p.eliminated);

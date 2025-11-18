@@ -178,7 +178,8 @@ export const useGameStore = create((set, get) => ({
     });
 
     socket.on('ERROR', ({ message }) => {
-      console.error('Socket error:', message);
+      console.error('❌ Socket error:', message);
+      console.error('Error context:', { roomId: get().roomId, playerId: get().playerId, role: get().role, phase: get().phase });
       alert(message);
     });
   },
@@ -227,7 +228,8 @@ export const useGameStore = create((set, get) => ({
   },
 
   castVote: (targetId) => {
-    const { roomId, playerId } = get();
+    const { roomId, playerId, role } = get();
+    console.log('📤 Casting vote:', { roomId, playerId, targetId, role });
     socket.emit('CAST_VOTE', { roomId, voterId: playerId, targetId });
   },
 
