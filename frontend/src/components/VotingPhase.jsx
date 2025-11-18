@@ -23,11 +23,17 @@ export default function VotingPhase() {
 
   const handleVote = () => {
     if (!selectedPlayer) {
-      alert('Please select a player to vote for');
+      alert('Please select a player or choose "No Vote"');
       return;
     }
 
     castVote(selectedPlayer);
+    setHasVoted(true);
+  };
+
+  const handleNoVote = () => {
+    castVote('NO_VOTE');
+    setSelectedPlayer('NO_VOTE');
     setHasVoted(true);
   };
 
@@ -80,6 +86,17 @@ export default function VotingPhase() {
                 </motion.button>
               ))}
             </div>
+
+            {/* No Vote Option */}
+            <motion.button
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: votingPlayers.length * 0.1 }}
+              onClick={handleNoVote}
+              className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white text-xl font-black py-4 rounded-xl hover:from-red-700 hover:to-red-800 transition-all shadow-lg mb-4"
+            >
+              🚫 No Vote
+            </motion.button>
 
             <button
               onClick={handleVote}

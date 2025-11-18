@@ -544,14 +544,51 @@ io.on('connection', (socket) => {
       totalPlayers: activePlayers.length
     });
 
-    // If everyone is ready, start voting
+    // If everyone is ready, transition to next phase
     if (readyCount >= activePlayers.length) {
-      console.log(`✅ All players ready! Starting voting phase.`);
-      room.gameState.phase = 'voting';
-      room.gameState.votes = {};
-      room.gameState.readyPlayers = []; // Reset for next round
+      // Check if we're in post-reveal discussion (clues are empty) or mid-round discussion
+      if (room.gameState.clues.length === 0) {
+        // Post-reveal discussion -> Start new round with clue phase
+        console.log(`✅ All players ready! Starting clue phase for round ${room.gameState.roundNumber}.`);
+        room.gameState.phase = 'clue';
+        room.gameState.readyPlayers = [];
 
-      io.to(roomId).emit('PHASE_CHANGED', { phase: 'voting' });
+        // Re-randomize player order for this round
+        const activePlayersForOrder = room.players.filter(p => p.connected && !p.eliminated);
+        const shuffledActivePlayers = secureShuffle(activePlayersForOrder);
+        room.gameState.playerOrder = shuffledActivePlayers.map(p => p.playerId);
+
+        io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
+        io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
+
+        // Send role info to each player
+        room.players.forEach(player => {
+          if (player.eliminated) return;
+
+          const playerSocket = Array.from(io.sockets.sockets.values())
+            .find(s => s.data.playerId === player.playerId);
+
+          if (playerSocket) {
+            const isImposter = room.gameState.imposterIds.includes(player.playerId);
+            const otherImpostersCount = isImposter ? room.gameState.imposterIds.length - 1 : 0;
+            playerSocket.emit('ROLE_INFO', {
+              role: isImposter ? 'imposter' : 'civilian',
+              word: isImposter ? null : room.gameState.secretWord,
+              category: room.settings.category,
+              numImposters: room.gameState.imposterIds.length,
+              otherImpostersCount: otherImpostersCount
+            });
+          }
+        });
+      } else {
+        // Mid-round discussion -> Start voting
+        console.log(`✅ All players ready! Starting voting phase.`);
+        room.gameState.phase = 'voting';
+        room.gameState.votes = {};
+        room.gameState.readyPlayers = [];
+
+        io.to(roomId).emit('PHASE_CHANGED', { phase: 'voting' });
+      }
     }
   });
 
@@ -614,11 +651,43 @@ io.on('connection', (socket) => {
 
     // Check if all active (non-eliminated) players have voted (including imposters)
     if (votesReceived >= activePlayers.length) {
-      // Tally votes
+      // Tally votes (exclude NO_VOTE)
       const voteCounts = {};
       Object.values(room.gameState.votes).forEach(targetId => {
-        voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
+        if (targetId !== 'NO_VOTE') {
+          voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
+        }
       });
+
+      // Check if everyone voted NO_VOTE (no one gets eliminated)
+      if (Object.keys(voteCounts).length === 0) {
+        console.log('📊 All players voted NO_VOTE - no elimination');
+
+        // Set special eliminatedPlayer for NO_VOTE
+        room.gameState.eliminatedPlayer = {
+          playerId: 'NO_VOTE',
+          name: 'No Vote',
+          wasImposter: null,
+          isNoVote: true
+        };
+
+        room.gameState.phase = 'reveal';
+
+        const remainingImpostersCount = room.gameState.imposterIds.filter(
+          id => !room.players.find(p => p.playerId === id)?.eliminated
+        ).length;
+
+        io.to(roomId).emit('VOTE_RESULTS', {
+          eliminatedPlayer: room.gameState.eliminatedPlayer,
+          wasImposter: null,
+          remainingImpostersCount,
+          voteBreakdown: {}
+        });
+
+        io.to(roomId).emit('PHASE_CHANGED', { phase: 'reveal' });
+
+        return;
+      }
 
       // Find player with most votes
       let maxVotes = 0;
@@ -765,44 +834,18 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Reset for next round (keep same word AND same imposters!)
-    room.gameState.clues = [];
+    // Clear vote data and increment round counter
     room.gameState.votes = {};
     room.gameState.readyPlayers = [];
     room.gameState.eliminatedPlayer = null;
     room.gameState.roundNumber += 1;
-    room.gameState.phase = 'clue';
+    room.gameState.phase = 'discussion';
 
-    // Re-randomize player order for this round using cryptographically secure shuffle
-    const activePlayers = room.players.filter(p => p.connected && !p.eliminated);
-    const shuffledActivePlayers = secureShuffle(activePlayers);
-    room.gameState.playerOrder = shuffledActivePlayers.map(p => p.playerId);
+    console.log(`🔄 Moving to discussion before round ${room.gameState.roundNumber}`);
 
-    console.log(`🔄 Starting round ${room.gameState.roundNumber}`);
-
-    // Notify everyone of the new round
-    io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
+    // Notify everyone to discuss before next round
+    io.to(roomId).emit('PHASE_CHANGED', { phase: 'discussion' });
     io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
-
-    // Send updated role info to each player
-    room.players.forEach(player => {
-      if (player.eliminated) return;
-
-      const playerSocket = Array.from(io.sockets.sockets.values())
-        .find(s => s.data.playerId === player.playerId);
-
-      if (playerSocket) {
-        const isImposter = room.gameState.imposterIds.includes(player.playerId);
-        const otherImpostersCount = isImposter ? room.gameState.imposterIds.length - 1 : 0;
-        playerSocket.emit('ROLE_INFO', {
-          role: isImposter ? 'imposter' : 'civilian',
-          word: isImposter ? null : room.gameState.secretWord,
-          category: room.settings.category,
-          numImposters: room.gameState.imposterIds.length,
-          otherImpostersCount: otherImpostersCount
-        });
-      }
-    });
   });
 
   socket.on('END_GAME', ({ roomId, playerId }) => {
