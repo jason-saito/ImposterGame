@@ -64,7 +64,7 @@ export default function Game() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-500">
       <AnimatePresence mode="wait">
-        {isEliminated && phase !== 'gameOver' ? (
+        {isEliminated && phase !== 'gameOver' && phase !== 'reveal' ? (
           <Eliminated key="eliminated" />
         ) : (
           <>

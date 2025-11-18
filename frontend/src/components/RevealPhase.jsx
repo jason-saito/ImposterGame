@@ -2,7 +2,11 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 
 export default function RevealPhase() {
-  const { eliminatedPlayer, remainingImpostersCount, isHost, nextRound } = useGameStore();
+  const { eliminatedPlayer, remainingImpostersCount, isHost, nextRound, players, playerId } = useGameStore();
+
+  // Check if current player (host) is eliminated
+  const currentPlayer = (players || []).find(p => p.playerId === playerId);
+  const isCurrentPlayerEliminated = currentPlayer?.eliminated;
 
   if (!eliminatedPlayer) {
     return (
@@ -90,30 +94,19 @@ export default function RevealPhase() {
                   {remainingImpostersCount} IMPOSTER{remainingImpostersCount > 1 ? 'S' : ''} REMAIN{remainingImpostersCount === 1 ? 'S' : ''}!
                 </p>
                 {isHost ? (
-                  <button
-                    onClick={nextRound}
-                    className="mt-4 w-full bg-white text-orange-500 text-xl font-black py-4 rounded-xl hover:bg-orange-50 transition-all shadow-lg"
-                  >
-                    GIVE NEW HINTS
-                  </button>
-                ) : (
-                  <p className="text-xl text-white opacity-90">
-                    Waiting for host to continue...
-                  </p>
-                )}
-              </div>
-            ) : continueGame ? (
-              <div className="bg-orange-500 rounded-2xl shadow-xl p-6">
-                <p className="text-3xl font-black text-white mb-2">
-                  {remainingImpostersCount} IMPOSTER{remainingImpostersCount > 1 ? 'S' : ''} REMAIN{remainingImpostersCount === 1 ? 'S' : ''}!
-                </p>
-                {isHost ? (
-                  <button
-                    onClick={nextRound}
-                    className="mt-4 w-full bg-white text-orange-500 text-xl font-black py-4 rounded-xl hover:bg-orange-50 transition-all shadow-lg"
-                  >
-                    GIVE NEW HINTS
-                  </button>
+                  <>
+                    {isCurrentPlayerEliminated && (
+                      <p className="text-lg text-white opacity-90 mb-2">
+                        💀 You're eliminated, but as host you can still advance the game
+                      </p>
+                    )}
+                    <button
+                      onClick={nextRound}
+                      className="mt-4 w-full bg-white text-orange-500 text-xl font-black py-4 rounded-xl hover:bg-orange-50 transition-all shadow-lg"
+                    >
+                      GIVE NEW HINTS
+                    </button>
+                  </>
                 ) : (
                   <p className="text-xl text-white opacity-90">
                     Waiting for host to continue...
