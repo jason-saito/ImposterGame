@@ -12,14 +12,13 @@ import GameOver from './GameOver';
 import Eliminated from './Eliminated';
 
 export default function Game() {
-  const { phase, role, secretWord, players, playerId } = useGameStore();
+  const { phase, role, secretWord, players, playerId, gameCode } = useGameStore();
   const [showRole, setShowRole] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     // If phase changes to lobby, redirect to lobby
     if (phase === 'lobby') {
-      const { gameCode } = useGameStore.getState();
       if (gameCode) {
         navigate(`/lobby/${gameCode}`);
       } else {
@@ -32,7 +31,7 @@ export default function Game() {
     if (phase === 'clue') {
       setShowRole(true);
     }
-  }, [phase, navigate]);
+  }, [phase, navigate, gameCode]);
 
   useEffect(() => {
     // Show role for 5 seconds then hide
