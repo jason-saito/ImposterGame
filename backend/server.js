@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 const app = express();
 const httpServer = createServer(app);
@@ -90,7 +91,7 @@ function getUniqueGameCode() {
   return code;
 }
 
-// Helper function to select random word from category
+// Helper function to select random word from category using secure randomization
 function getRandomWord(category, customWords = []) {
   let words;
 
@@ -100,33 +101,48 @@ function getRandomWord(category, customWords = []) {
     words = wordCategories[category] || wordCategories.animals;
   }
 
-  return words[Math.floor(Math.random() * words.length)];
+  if (words.length === 0) return null;
+  
+  // Use cryptographically secure random selection
+  const randomIndex = getSecureRandomInt(words.length);
+  return words[randomIndex];
 }
 
-// Helper function to get better random integer
+// Helper function to get cryptographically secure random integer
 function getSecureRandomInt(max) {
-  // Use multiple random calls for better entropy
-  const rand1 = Math.random();
-  const rand2 = Math.random();
-  const rand3 = Math.random();
-
-  // Combine multiple random sources
-  const combined = (rand1 + rand2 + rand3) / 3;
-  return Math.floor(combined * max);
+  if (max <= 0) return 0;
+  
+  // Use crypto for secure random number generation
+  const randomBytes = crypto.randomBytes(4);
+  const randomValue = randomBytes.readUInt32BE(0);
+  
+  // Convert to range [0, max)
+  return randomValue % max;
 }
 
-// Helper function to select random imposters (improved Fisher-Yates shuffle)
+// Helper function to cryptographically secure Fisher-Yates shuffle
+function secureShuffle(array) {
+  const shuffled = [...array];
+  
+  // Use crypto-based random for each swap
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    // Get cryptographically secure random index
+    const j = getSecureRandomInt(i + 1);
+    
+    // Swap elements
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  
+  return shuffled;
+}
+
+// Helper function to select random imposters using cryptographically secure randomization
 function selectImposters(players, numImposters) {
   console.log(`🎲 Selecting ${numImposters} imposter(s) from ${players.length} players:`);
   players.forEach((p, idx) => console.log(`   [${idx}] ${p.name}`));
 
-  // Use Fisher-Yates shuffle for better randomization
-  const shuffled = [...players];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    // Use crypto.getRandomValues if available, otherwise Math.random
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
+  // Use cryptographically secure Fisher-Yates shuffle
+  const shuffled = secureShuffle(players);
 
   // Select first numImposters from shuffled array
   const imposterIds = shuffled.slice(0, numImposters).map(p => p.playerId);
@@ -367,12 +383,8 @@ io.on('connection', (socket) => {
     // Select secret word
     const secretWord = getRandomWord(room.settings.category, room.settings.customWords);
 
-    // Randomize starting player order by shuffling active players
-    const shuffledActivePlayers = [...activePlayers];
-    for (let i = shuffledActivePlayers.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledActivePlayers[i], shuffledActivePlayers[j]] = [shuffledActivePlayers[j], shuffledActivePlayers[i]];
-    }
+    // Randomize starting player order using cryptographically secure shuffle
+    const shuffledActivePlayers = secureShuffle(activePlayers);
 
     // Update game state
     room.gameState = {
@@ -715,13 +727,9 @@ io.on('connection', (socket) => {
     room.gameState.roundNumber += 1;
     room.gameState.phase = 'clue';
 
-    // Re-randomize player order for this round
+    // Re-randomize player order for this round using cryptographically secure shuffle
     const activePlayers = room.players.filter(p => p.connected && !p.eliminated);
-    const shuffledActivePlayers = [...activePlayers];
-    for (let i = shuffledActivePlayers.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledActivePlayers[i], shuffledActivePlayers[j]] = [shuffledActivePlayers[j], shuffledActivePlayers[i]];
-    }
+    const shuffledActivePlayers = secureShuffle(activePlayers);
     room.gameState.playerOrder = shuffledActivePlayers.map(p => p.playerId);
 
     console.log(`🔄 Starting round ${room.gameState.roundNumber}`);
@@ -815,12 +823,8 @@ io.on('connection', (socket) => {
     const imposterIds = selectImposters(activePlayers, room.settings.numImposters);
     const secretWord = getRandomWord(room.settings.category, room.settings.customWords);
 
-    // Randomize starting player order
-    const shuffledActivePlayers = [...activePlayers];
-    for (let i = shuffledActivePlayers.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledActivePlayers[i], shuffledActivePlayers[j]] = [shuffledActivePlayers[j], shuffledActivePlayers[i]];
-    }
+    // Randomize starting player order using cryptographically secure shuffle
+    const shuffledActivePlayers = secureShuffle(activePlayers);
 
     room.gameState = {
       phase: 'clue',
