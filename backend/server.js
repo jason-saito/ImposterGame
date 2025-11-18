@@ -157,6 +157,16 @@ function selectImposters(players, numImposters) {
 
 // API Routes
 
+// Health check endpoint (for keeping server alive)
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Imposter Game API is running',
+    activeRooms: rooms.size,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Create a new room
 app.post('/rooms', (req, res) => {
   const { hostName } = req.body;

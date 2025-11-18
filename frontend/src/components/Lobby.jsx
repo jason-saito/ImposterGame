@@ -45,8 +45,10 @@ export default function Lobby() {
 
   // Handle URL code parameter - if code is in URL but player hasn't joined, show join form
   useEffect(() => {
+    console.log('Lobby URL check:', { code, gameCode, willShowJoinForm: !!(code && !gameCode) });
     if (code && !gameCode) {
       // Code in URL but not in room - show join form
+      console.log('Showing join form for code:', code);
       setShowJoinForm(true);
     }
   }, [code, gameCode]);
@@ -57,6 +59,7 @@ export default function Lobby() {
       return;
     }
 
+    console.log('Attempting to join via URL:', { code, playerName, API_URL });
     setJoining(true);
     try {
       const response = await fetch(`${API_URL}/rooms/join`, {
