@@ -33,7 +33,8 @@ export default function Game() {
 
   if (!role) {
     // Redirect to landing if not in a game
-    navigate('/');
+    navigate('/', { replace: true });
+    window.history.replaceState({}, '', '/');
     return null;
   }
 

@@ -5,7 +5,7 @@ import { API_URL } from '../config';
 
 export default function Landing() {
   const { code } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const urlCode = code || searchParams.get('code') || '';
   const [gameCode, setGameCode] = useState(urlCode);
   const [playerName, setPlayerName] = useState('');
@@ -17,11 +17,23 @@ export default function Landing() {
   const { setPlayerId, setPlayerName: savePlayerName, setRoomData, joinRoom, initializeSocket } = useGameStore();
   const navigate = useNavigate();
 
+  // Clear URL params when component mounts without a code
+  useEffect(() => {
+    if (!urlCode && searchParams.has('code')) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [urlCode, searchParams, setSearchParams]);
+
   // If code is in URL, pre-fill and show join form
   useEffect(() => {
     if (urlCode) {
       setGameCode(urlCode);
       setShowJoinForm(true);
+    } else {
+      // Reset form when no code in URL
+      setGameCode('');
+      setShowJoinForm(false);
+      setShowHostForm(false);
     }
   }, [urlCode]);
 

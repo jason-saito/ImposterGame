@@ -27,7 +27,10 @@ export default function Lobby() {
 
   const handleBackToHome = () => {
     resetGame();
-    navigate('/');
+    // Navigate to home and clear any URL parameters
+    navigate('/', { replace: true });
+    // Force URL update to remove query params
+    window.history.replaceState({}, '', '/');
   };
 
   // Handle URL code parameter - if code is in URL but player hasn't joined, redirect to landing

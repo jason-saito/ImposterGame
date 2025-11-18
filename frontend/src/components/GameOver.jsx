@@ -8,7 +8,10 @@ export default function GameOver() {
 
   const handleBackToHome = () => {
     resetGame();
-    navigate('/');
+    // Navigate to home and clear any URL parameters
+    navigate('/', { replace: true });
+    // Force URL update to remove query params
+    window.history.replaceState({}, '', '/');
   };
 
   const imposterPlayers = players.filter(p => imposterIds?.includes(p.playerId));
