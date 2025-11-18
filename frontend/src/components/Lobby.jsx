@@ -44,6 +44,9 @@ export default function Lobby() {
   useEffect(() => {
     if (phase === 'clue') {
       navigate('/game');
+    } else if (phase === 'lobby') {
+      // Stay in lobby when phase is lobby
+      // This handles the case when game is reset to lobby
     }
   }, [phase, navigate]);
 

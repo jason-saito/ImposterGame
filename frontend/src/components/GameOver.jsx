@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 
 export default function GameOver() {
-  const { winners, imposterIds, players, secretWord, resetGame } = useGameStore();
+  const { winners, imposterIds, players, secretWord, resetGame, resetToLobby, gameCode, isHost } = useGameStore();
   const navigate = useNavigate();
 
   const handleBackToHome = () => {
@@ -12,6 +12,14 @@ export default function GameOver() {
     navigate('/', { replace: true });
     // Force URL update to remove query params
     window.history.replaceState({}, '', '/');
+  };
+
+  const handleBackToLobby = () => {
+    if (isHost) {
+      resetToLobby();
+      // Navigate back to lobby with same game code
+      navigate(`/lobby/${gameCode}`);
+    }
   };
 
   const imposterPlayers = players.filter(p => imposterIds?.includes(p.playerId));
@@ -95,18 +103,33 @@ export default function GameOver() {
           </div>
         </motion.div>
 
-        {/* Back to Home Button */}
-        <motion.button
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 1 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleBackToHome}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-black py-6 rounded-2xl shadow-2xl hover:from-purple-600 hover:to-pink-600 transition-all"
-        >
-          Back to Home
-        </motion.button>
+        {/* Action Buttons */}
+        <div className="space-y-4">
+          {isHost && (
+            <motion.button
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleBackToLobby}
+              className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-2xl font-black py-6 rounded-2xl shadow-2xl hover:from-blue-600 hover:to-cyan-600 transition-all"
+            >
+              Back to Lobby (Keep Room)
+            </motion.button>
+          )}
+          <motion.button
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1.1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleBackToHome}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-black py-6 rounded-2xl shadow-2xl hover:from-purple-600 hover:to-pink-600 transition-all"
+          >
+            Back to Home
+          </motion.button>
+        </div>
       </div>
     </motion.div>
   );

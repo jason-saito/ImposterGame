@@ -17,11 +17,22 @@ export default function Game() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // If phase changes to lobby, redirect to lobby
+    if (phase === 'lobby') {
+      const { gameCode } = useGameStore.getState();
+      if (gameCode) {
+        navigate(`/lobby/${gameCode}`);
+      } else {
+        navigate('/lobby');
+      }
+      return;
+    }
+    
     // Reset showRole when entering clue phase (for new rounds)
     if (phase === 'clue') {
       setShowRole(true);
     }
-  }, [phase]);
+  }, [phase, navigate]);
 
   useEffect(() => {
     // Show role for 5 seconds then hide

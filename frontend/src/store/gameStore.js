@@ -80,6 +80,8 @@ export const useGameStore = create((set, get) => ({
     set({ phase: 'gameOver', winners, imposterIds, secretWord });
   },
 
+  setPhase: (phase) => set({ phase }),
+
   resetGame: () => {
     set({
       roomId: null,
@@ -130,7 +132,27 @@ export const useGameStore = create((set, get) => ({
     });
 
     socket.on('PHASE_CHANGED', ({ phase }) => {
+      console.log('📥 PHASE_CHANGED:', phase);
       set({ phase });
+      
+      // If phase changed to lobby, clear game-specific state
+      if (phase === 'lobby') {
+        set({
+          role: null,
+          secretWord: null,
+          clues: [],
+          votes: {},
+          eliminatedPlayer: null,
+          remainingImpostersCount: 0,
+          tiedPlayers: null,
+          voteCount: null,
+          winners: null,
+          imposterIds: [],
+          category: null,
+          numImposters: 0,
+          otherImpostersCount: 0
+        });
+      }
     });
 
     socket.on('ROLE_INFO', ({ role, word, category, numImposters, otherImpostersCount }) => {
@@ -246,5 +268,10 @@ export const useGameStore = create((set, get) => ({
   restartGame: () => {
     const { roomId, playerId } = get();
     socket.emit('RESTART_GAME', { roomId, playerId });
+  },
+
+  resetToLobby: () => {
+    const { roomId, playerId } = get();
+    socket.emit('RESET_TO_LOBBY', { roomId, playerId });
   }
 }));

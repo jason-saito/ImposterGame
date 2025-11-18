@@ -843,6 +843,46 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('RESET_TO_LOBBY', ({ roomId, playerId }) => {
+    const room = rooms.get(roomId);
+
+    if (!room) {
+      socket.emit('ERROR', { message: 'Room not found' });
+      return;
+    }
+
+    // Only host can reset to lobby
+    const player = room.players.find(p => p.playerId === playerId);
+    if (!player || !player.isHost) {
+      socket.emit('ERROR', { message: 'Only the host can reset to lobby' });
+      return;
+    }
+
+    // Reset all players (un-eliminate them)
+    room.players.forEach(p => {
+      p.eliminated = false;
+    });
+
+    // Reset game state back to lobby (keep room, players, and settings)
+    room.gameState = {
+      phase: 'lobby',
+      secretWord: null,
+      imposterIds: [],
+      clues: [],
+      votes: {},
+      readyPlayers: [],
+      eliminatedPlayer: null,
+      roundNumber: 0
+    };
+    room.status = 'lobby';
+
+    // Notify everyone phase changed back to lobby
+    io.to(roomId).emit('PHASE_CHANGED', { phase: 'lobby' });
+    io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
+
+    console.log(`🔄 Game reset to lobby - Room: ${room.gameCode}, Players: ${room.players.length}`);
+  });
+
   socket.on('RESTART_GAME', ({ roomId, playerId }) => {
     const room = rooms.get(roomId);
 
