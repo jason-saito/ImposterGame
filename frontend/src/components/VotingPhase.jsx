@@ -37,7 +37,7 @@ export default function VotingPhase() {
     setHasVoted(true);
   };
 
-  const votingPlayers = (players || []).filter(p => p.playerId !== playerId && !p.eliminated);
+  const votingPlayers = (players || []).filter(p => p.playerId !== playerId && !p.eliminated && p.connected);
 
   return (
     <motion.div

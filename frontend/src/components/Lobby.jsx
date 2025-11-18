@@ -527,7 +527,7 @@ export default function Lobby() {
             className="space-y-4"
           >
             <button
-              onClick={restartGame}
+              onClick={handleStartGame}
               className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white text-xl font-black py-4 rounded-2xl shadow-xl hover:from-blue-600 hover:to-cyan-700 transition-all"
             >
               START GAME
