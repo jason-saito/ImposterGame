@@ -542,13 +542,7 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Check if voter is an imposter - imposters cannot vote
-    if (room.gameState.imposterIds.includes(voterId)) {
-      socket.emit('ERROR', { message: 'Imposters cannot vote' });
-      return;
-    }
-
-    // Record vote
+    // Record vote (imposters can now vote)
     room.gameState.votes[voterId] = targetId;
 
     // Emit vote progress (exclude eliminated players)
