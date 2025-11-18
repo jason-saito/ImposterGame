@@ -12,7 +12,7 @@ import GameOver from './GameOver';
 import Eliminated from './Eliminated';
 
 export default function Game() {
-  const { phase, role, secretWord, players, playerId, gameCode } = useGameStore();
+  const { phase, role, secretWord, players, playerId, gameCode, roundNumber } = useGameStore();
   const [showRole, setShowRole] = useState(true);
   const navigate = useNavigate();
 
@@ -33,19 +33,21 @@ export default function Game() {
       return;
     }
 
-    // Reset showRole when entering clue phase (for new rounds)
-    if (phase === 'clue') {
+    // Only show role reveal in round 1
+    if (phase === 'clue' && roundNumber === 1) {
       setShowRole(true);
+    } else if (phase === 'clue') {
+      setShowRole(false);
     }
-  }, [phase, navigate, gameCode]);
+  }, [phase, navigate, gameCode, roundNumber]);
 
   useEffect(() => {
-    // Show role for 5 seconds then hide
-    if (phase === 'clue' && showRole) {
+    // Show role for 5 seconds then hide (only in round 1)
+    if (phase === 'clue' && showRole && roundNumber === 1) {
       const timer = setTimeout(() => setShowRole(false), 5000);
       return () => clearTimeout(timer);
     }
-  }, [phase, showRole]);
+  }, [phase, showRole, roundNumber]);
 
   // Don't redirect if we're in gameOver phase - let GameOver component handle navigation
   if (!role && phase !== 'gameOver') {

@@ -35,6 +35,7 @@ export const useGameStore = create((set, get) => ({
   numImposters: 0,
   otherImpostersCount: 0,
   playerOrder: [],
+  roundNumber: 0,
 
   // Settings
   settings: {
@@ -104,7 +105,8 @@ export const useGameStore = create((set, get) => ({
       category: null,
       numImposters: 0,
       otherImpostersCount: 0,
-      playerOrder: []
+      playerOrder: [],
+      roundNumber: 0
     });
   },
 
@@ -125,12 +127,13 @@ export const useGameStore = create((set, get) => ({
     socket.off('ERROR');
 
     socket.on('ROOM_UPDATED', ({ room }) => {
-      console.log('📥 ROOM_UPDATED received. Clues:', room.gameState?.clues);
+      console.log('📥 ROOM_UPDATED received. Clues:', room.gameState?.clues, 'Round:', room.gameState?.roundNumber);
       set({
         players: room.players,
         settings: room.settings,
         clues: room.gameState?.clues || [],
-        playerOrder: room.gameState?.playerOrder || []
+        playerOrder: room.gameState?.playerOrder || [],
+        roundNumber: room.gameState?.roundNumber || 0
       });
     });
 
@@ -156,7 +159,8 @@ export const useGameStore = create((set, get) => ({
           category: null,
           numImposters: 0,
           otherImpostersCount: 0,
-          playerOrder: []
+          playerOrder: [],
+          roundNumber: 0
         });
       }
     });
