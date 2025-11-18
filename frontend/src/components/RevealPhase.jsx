@@ -13,7 +13,8 @@ export default function RevealPhase() {
   }
 
   const { name, wasImposter } = eliminatedPlayer;
-  const continueGame = wasImposter && remainingImpostersCount > 0;
+  // Game continues if there are still imposters remaining (game isn't over)
+  const continueGame = remainingImpostersCount > 0;
 
   return (
     <motion.div
@@ -80,6 +81,24 @@ export default function RevealPhase() {
             className="mt-8"
           >
             {continueGame ? (
+              <div className="bg-orange-500 rounded-2xl shadow-xl p-6">
+                <p className="text-3xl font-black text-white mb-2">
+                  {remainingImpostersCount} IMPOSTER{remainingImpostersCount > 1 ? 'S' : ''} REMAIN{remainingImpostersCount === 1 ? 'S' : ''}!
+                </p>
+                {isHost ? (
+                  <button
+                    onClick={nextRound}
+                    className="mt-4 w-full bg-white text-orange-500 text-xl font-black py-4 rounded-xl hover:bg-orange-50 transition-all shadow-lg"
+                  >
+                    START NEXT ROUND
+                  </button>
+                ) : (
+                  <p className="text-xl text-white opacity-90">
+                    Waiting for host to start next round...
+                  </p>
+                )}
+              </div>
+            ) : continueGame ? (
               <div className="bg-orange-500 rounded-2xl shadow-xl p-6">
                 <p className="text-3xl font-black text-white mb-2">
                   {remainingImpostersCount} IMPOSTER{remainingImpostersCount > 1 ? 'S' : ''} REMAIN{remainingImpostersCount === 1 ? 'S' : ''}!

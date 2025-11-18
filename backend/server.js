@@ -733,14 +733,13 @@ io.on('connection', (socket) => {
         }, 3000);
       } else {
         // Continue to next round - game is not over yet
-        if (wasImposter) {
-          console.log(`🔄 Imposter eliminated! ${remainingImpostersCount} imposter(s) remain. Starting next round...`);
-        } else {
-          console.log(`🔄 Civilian eliminated! Game continues. ${remainingImpostersCount} imposter(s) vs civilians. Starting next round...`);
-        }
-
         // Don't auto-advance - wait for host to manually start next round
-        // The reveal phase will show a button for the host to continue
+        // The reveal phase will show a button for the host to continue to clue phase
+        if (wasImposter) {
+          console.log(`🔄 Imposter eliminated! ${remainingImpostersCount} imposter(s) remain. Waiting for host to start next round...`);
+        } else {
+          console.log(`🔄 Civilian eliminated! Game continues. ${remainingImpostersCount} imposter(s) vs civilians. Waiting for host to start next round...`);
+        }
       }
     }
   });
