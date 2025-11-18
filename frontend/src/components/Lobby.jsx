@@ -414,7 +414,7 @@ export default function Lobby() {
           </motion.button>
         )}
 
-        {/* End Game and Restart Game Buttons (Host Only, when game is in progress) */}
+        {/* Restart Game and End Game Buttons (Host Only, when game is in progress) */}
         {isHost && phase !== 'lobby' && phase !== 'gameOver' && (
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -423,16 +423,16 @@ export default function Lobby() {
             className="space-y-4"
           >
             <button
-              onClick={endGame}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white text-xl font-black py-4 rounded-2xl shadow-xl hover:from-red-600 hover:to-pink-700 transition-all"
-            >
-              END GAME
-            </button>
-            <button
               onClick={restartGame}
               className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white text-xl font-black py-4 rounded-2xl shadow-xl hover:from-blue-600 hover:to-cyan-700 transition-all"
             >
               START GAME
+            </button>
+            <button
+              onClick={endGame}
+              className="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white text-xl font-black py-4 rounded-2xl shadow-xl hover:from-red-600 hover:to-pink-700 transition-all"
+            >
+              END GAME
             </button>
           </motion.div>
         )}
