@@ -137,14 +137,16 @@ export const useGameStore = create((set, get) => ({
     socket.on('PHASE_CHANGED', ({ phase }) => {
       console.log('📥 PHASE_CHANGED:', phase);
       set({ phase });
-      
+
       // If phase changed to lobby, clear game-specific state
       if (phase === 'lobby') {
+        console.log('🔄 Clearing game state and returning to lobby');
         set({
           role: null,
           secretWord: null,
           clues: [],
           votes: {},
+          readyPlayers: { readyCount: 0, totalPlayers: 0 },
           eliminatedPlayer: null,
           remainingImpostersCount: 0,
           tiedPlayers: null,

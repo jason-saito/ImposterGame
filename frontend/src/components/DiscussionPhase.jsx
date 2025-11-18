@@ -7,7 +7,7 @@ export default function DiscussionPhase() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [hasClickedReady, setHasClickedReady] = useState(false);
   const isLocalMode = settings.gameMode === 'local';
-  const currentPlayer = players.find(p => p.playerId === playerId);
+  const currentPlayer = (players || []).find(p => p.playerId === playerId);
   const isEliminated = currentPlayer?.eliminated;
 
   // Reset timer and ready state when component mounts (for new rounds)

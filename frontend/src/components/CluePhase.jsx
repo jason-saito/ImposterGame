@@ -29,11 +29,11 @@ export default function CluePhase() {
   const getStartingPlayerName = () => {
     if (playerOrder && playerOrder.length > 0) {
       const firstPlayerId = playerOrder[0];
-      const firstPlayer = players.find(p => p.playerId === firstPlayerId && !p.eliminated);
+      const firstPlayer = (players || []).find(p => p.playerId === firstPlayerId && !p.eliminated);
       return firstPlayer?.name || null;
     }
     // Fallback: if no playerOrder, pick a random active player
-    const activePlayers = players.filter(p => !p.eliminated);
+    const activePlayers = (players || []).filter(p => !p.eliminated);
     if (activePlayers.length > 0) {
       return activePlayers[Math.floor(Math.random() * activePlayers.length)].name;
     }

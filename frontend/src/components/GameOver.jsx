@@ -23,16 +23,14 @@ export default function GameOver() {
       alert('Error: Cannot return to lobby. Please go back to home.');
       return;
     }
-    
+
     try {
       if (isHost) {
+        // Host resets the game to lobby phase
+        // The Game.jsx component will handle navigation when phase changes to 'lobby'
         resetToLobby();
-        // Small delay to ensure state is reset before navigation
-        setTimeout(() => {
-          navigate(`/lobby/${gameCode}`);
-        }, 200);
       } else {
-        // Non-hosts can also go back to lobby (they'll just wait there)
+        // Non-hosts just navigate back to lobby (they'll wait there for host)
         navigate(`/lobby/${gameCode}`);
       }
     } catch (error) {

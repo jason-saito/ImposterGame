@@ -3,7 +3,7 @@ import { useGameStore } from '../store/gameStore';
 
 export default function Eliminated() {
   const { players, playerId } = useGameStore();
-  const eliminatedPlayer = players.find(p => p.playerId === playerId);
+  const eliminatedPlayer = (players || []).find(p => p.playerId === playerId);
 
   return (
     <motion.div

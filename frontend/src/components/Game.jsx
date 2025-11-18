@@ -19,14 +19,20 @@ export default function Game() {
   useEffect(() => {
     // If phase changes to lobby, redirect to lobby
     if (phase === 'lobby') {
-      if (gameCode) {
-        navigate(`/lobby/${gameCode}`);
-      } else {
-        navigate('/lobby');
+      try {
+        if (gameCode) {
+          console.log('Game phase changed to lobby, navigating to /lobby/' + gameCode);
+          navigate(`/lobby/${gameCode}`, { replace: true });
+        } else {
+          console.log('Game phase changed to lobby, navigating to /lobby');
+          navigate('/lobby', { replace: true });
+        }
+      } catch (error) {
+        console.error('Error navigating to lobby:', error);
       }
       return;
     }
-    
+
     // Reset showRole when entering clue phase (for new rounds)
     if (phase === 'clue') {
       setShowRole(true);
@@ -50,7 +56,7 @@ export default function Game() {
   }
 
   // Check if current player is eliminated
-  const currentPlayer = players.find(p => p.playerId === playerId);
+  const currentPlayer = (players || []).find(p => p.playerId === playerId);
   const isEliminated = currentPlayer?.eliminated;
 
   return (

@@ -43,10 +43,16 @@ export default function Lobby() {
 
   useEffect(() => {
     if (phase === 'clue') {
-      navigate('/game');
+      try {
+        console.log('Lobby phase changed to clue, navigating to /game');
+        navigate('/game', { replace: true });
+      } catch (error) {
+        console.error('Error navigating to game:', error);
+      }
     } else if (phase === 'lobby') {
       // Stay in lobby when phase is lobby
       // This handles the case when game is reset to lobby
+      console.log('Phase is lobby, staying in lobby view');
     }
   }, [phase, navigate]);
 
@@ -82,7 +88,7 @@ export default function Lobby() {
     }
 
     // Check connected players
-    const connectedPlayers = players.filter(p => p.connected);
+    const connectedPlayers = (players || []).filter(p => p.connected);
     if (connectedPlayers.length < 3) {
       alert(`You need at least 3 connected players to start. Currently ${connectedPlayers.length} player(s) are connected.`);
       return;
