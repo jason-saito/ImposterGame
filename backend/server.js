@@ -503,25 +503,39 @@ io.on('connection', (socket) => {
     }
 
     if (room.gameState.phase !== 'discussion') {
+      console.log(`❌ START_VOTING rejected - Phase is ${room.gameState.phase || 'undefined'}, expected 'discussion'`);
       socket.emit('ERROR', { message: 'Not in discussion phase' });
       return;
     }
 
     // Check if player is eliminated
     const player = room.players.find(p => p.playerId === playerId);
-    if (player?.eliminated) {
+    if (!player) {
+      socket.emit('ERROR', { message: 'Player not found' });
+      return;
+    }
+
+    if (player.eliminated) {
       socket.emit('ERROR', { message: 'Eliminated players cannot mark ready' });
+      return;
+    }
+
+    if (!player.connected) {
+      socket.emit('ERROR', { message: 'Disconnected players cannot mark ready' });
       return;
     }
 
     // Mark player as ready (avoid duplicates)
     if (!room.gameState.readyPlayers.includes(playerId)) {
       room.gameState.readyPlayers.push(playerId);
+      console.log(`✅ ${player.name} marked ready for voting`);
     }
 
-    // Check if all active (non-eliminated) players are ready
+    // Check if all active (non-eliminated) players are ready (including imposters)
     const activePlayers = room.players.filter(p => p.connected && !p.eliminated);
     const readyCount = room.gameState.readyPlayers.length;
+
+    console.log(`📊 Ready status: ${readyCount}/${activePlayers.length} players ready (Active: ${activePlayers.map(p => p.name).join(', ')})`);
 
     // Emit ready status update
     io.to(roomId).emit('READY_UPDATE', {
@@ -531,6 +545,7 @@ io.on('connection', (socket) => {
 
     // If everyone is ready, start voting
     if (readyCount >= activePlayers.length) {
+      console.log(`✅ All players ready! Starting voting phase.`);
       room.gameState.phase = 'voting';
       room.gameState.votes = {};
       room.gameState.readyPlayers = []; // Reset for next round
@@ -542,30 +557,50 @@ io.on('connection', (socket) => {
   socket.on('CAST_VOTE', ({ roomId, voterId, targetId }) => {
     const room = rooms.get(roomId);
 
-    if (!room || room.gameState.phase !== 'voting') {
-      socket.emit('ERROR', { message: 'Invalid action' });
+    if (!room) {
+      socket.emit('ERROR', { message: 'Room not found' });
+      return;
+    }
+
+    if (room.gameState.phase !== 'voting') {
+      console.log(`❌ CAST_VOTE rejected - Phase is ${room.gameState.phase || 'undefined'}, expected 'voting'`);
+      socket.emit('ERROR', { message: `Invalid action: Not in voting phase (current phase: ${room.gameState.phase || 'unknown'})` });
       return;
     }
 
     // Check if player is eliminated
     const voter = room.players.find(p => p.playerId === voterId);
-    if (voter?.eliminated) {
+    if (!voter) {
+      socket.emit('ERROR', { message: 'Player not found' });
+      return;
+    }
+
+    if (voter.eliminated) {
       socket.emit('ERROR', { message: 'Eliminated players cannot vote' });
       return;
     }
 
-    // Record vote (imposters can now vote)
-    room.gameState.votes[voterId] = targetId;
+    if (!voter.connected) {
+      socket.emit('ERROR', { message: 'Disconnected players cannot vote' });
+      return;
+    }
 
-    // Emit vote progress (exclude eliminated players)
+    // Record vote (imposters can now vote - all active players can vote)
+    room.gameState.votes[voterId] = targetId;
+    console.log(`✅ Vote recorded - Voter: ${voter.name}, Target: ${room.players.find(p => p.playerId === targetId)?.name || targetId}`);
+
+    // Emit vote progress (include all active players - civilians AND imposters)
     const activePlayers = room.players.filter(p => p.connected && !p.eliminated);
     const votesReceived = Object.keys(room.gameState.votes).length;
+    
+    console.log(`📊 Vote progress: ${votesReceived}/${activePlayers.length} votes received (Active players: ${activePlayers.map(p => p.name).join(', ')})`);
+    
     io.to(roomId).emit('VOTE_UPDATE', {
       votesReceived,
       totalVotes: activePlayers.length
     });
 
-    // Check if all active (non-eliminated) votes are in
+    // Check if all active (non-eliminated) players have voted (including imposters)
     if (votesReceived >= activePlayers.length) {
       // Tally votes
       const voteCounts = {};
