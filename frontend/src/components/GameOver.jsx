@@ -6,6 +6,9 @@ export default function GameOver() {
   const { winners, imposterIds, players, secretWord, resetGame, resetToLobby, gameCode, isHost } = useGameStore();
   const navigate = useNavigate();
 
+  // Safety check - if no gameCode, can't go back to lobby
+  const canGoToLobby = !!gameCode;
+
   const handleBackToHome = () => {
     resetGame();
     // Navigate to home and clear any URL parameters
@@ -15,14 +18,30 @@ export default function GameOver() {
   };
 
   const handleBackToLobby = () => {
-    if (isHost) {
-      resetToLobby();
-      // Navigate back to lobby with same game code
-      navigate(`/lobby/${gameCode}`);
+    if (!gameCode) {
+      console.error('Cannot return to lobby: gameCode is missing');
+      alert('Error: Cannot return to lobby. Please go back to home.');
+      return;
+    }
+    
+    try {
+      if (isHost) {
+        resetToLobby();
+        // Small delay to ensure state is reset before navigation
+        setTimeout(() => {
+          navigate(`/lobby/${gameCode}`);
+        }, 200);
+      } else {
+        // Non-hosts can also go back to lobby (they'll just wait there)
+        navigate(`/lobby/${gameCode}`);
+      }
+    } catch (error) {
+      console.error('Error returning to lobby:', error);
+      alert('Error returning to lobby. Please try going back to home.');
     }
   };
 
-  const imposterPlayers = players.filter(p => imposterIds?.includes(p.playerId));
+  const imposterPlayers = (players || []).filter(p => imposterIds?.includes(p.playerId));
 
   return (
     <motion.div
@@ -105,7 +124,7 @@ export default function GameOver() {
 
         {/* Action Buttons */}
         <div className="space-y-4">
-          {isHost && (
+          {canGoToLobby && (
             <motion.button
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -115,19 +134,19 @@ export default function GameOver() {
               onClick={handleBackToLobby}
               className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-2xl font-black py-6 rounded-2xl shadow-2xl hover:from-blue-600 hover:to-cyan-600 transition-all"
             >
-              Back to Lobby (Keep Room)
+              {isHost ? 'Back to Lobby (Start New Game)' : 'Back to Lobby'}
             </motion.button>
           )}
           <motion.button
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 1.1 }}
+            transition={{ delay: canGoToLobby ? 1.1 : 1 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleBackToHome}
             className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-black py-6 rounded-2xl shadow-2xl hover:from-purple-600 hover:to-pink-600 transition-all"
           >
-            Back to Home
+            Exit to Home Page
           </motion.button>
         </div>
       </div>

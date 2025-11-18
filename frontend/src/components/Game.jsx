@@ -41,8 +41,9 @@ export default function Game() {
     }
   }, [phase, showRole]);
 
-  if (!role) {
-    // Redirect to landing if not in a game
+  // Don't redirect if we're in gameOver phase - let GameOver component handle navigation
+  if (!role && phase !== 'gameOver') {
+    // Redirect to landing if not in a game (but not if game just ended)
     navigate('/', { replace: true });
     window.history.replaceState({}, '', '/');
     return null;

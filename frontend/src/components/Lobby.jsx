@@ -394,7 +394,7 @@ export default function Lobby() {
         )}
 
         {/* Game Control Buttons (Host Only) */}
-        {isHost && phase === 'lobby' && (
+        {isHost && phase === 'lobby' && players.length >= 3 && (
           <motion.button
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

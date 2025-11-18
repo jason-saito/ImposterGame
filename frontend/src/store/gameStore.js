@@ -195,11 +195,12 @@ export const useGameStore = create((set, get) => ({
     });
 
     socket.on('GAME_OVER', ({ winners, imposterIds, secretWord }) => {
+      console.log('📥 GAME_OVER received:', { winners, imposterIds, secretWord });
       set({
         phase: 'gameOver',
-        winners,
-        imposterIds,
-        secretWord
+        winners: winners || null,
+        imposterIds: imposterIds || [],
+        secretWord: secretWord || null
       });
     });
 
