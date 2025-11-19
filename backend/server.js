@@ -411,10 +411,8 @@ io.on('connection', (socket) => {
     };
     room.status = 'playing';
 
-    // Notify everyone phase changed
-    io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
-
-    // Send role info to each player individually with additional context
+    // Send role info to each player individually FIRST (before phase change)
+    // This prevents race condition where players receive phase change before role assignment
     room.players.forEach(player => {
       const playerSocket = Array.from(io.sockets.sockets.values())
         .find(s => s.data.playerId === player.playerId);
@@ -431,6 +429,9 @@ io.on('connection', (socket) => {
         });
       }
     });
+
+    // Notify everyone phase changed (AFTER roles are assigned)
+    io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
 
     io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
   });
@@ -822,11 +823,8 @@ io.on('connection', (socket) => {
 
     console.log(`🔄 Starting round ${room.gameState.roundNumber} with new clues`);
 
-    // Notify everyone to give new clues
-    io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
-    io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
-
-    // Send role info to each player
+    // Send role info to each player FIRST (before phase change)
+    // This prevents race condition where players receive phase change before role assignment
     room.players.forEach(player => {
       if (player.eliminated) return;
 
@@ -845,6 +843,10 @@ io.on('connection', (socket) => {
         });
       }
     });
+
+    // Notify everyone to give new clues (AFTER roles are assigned)
+    io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
+    io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
   });
 
   socket.on('END_GAME', ({ roomId, playerId }) => {
@@ -967,10 +969,8 @@ io.on('connection', (socket) => {
     };
     room.status = 'playing';
 
-    // Notify everyone phase changed
-    io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
-
-    // Send role info to each player individually with additional context
+    // Send role info to each player individually FIRST (before phase change)
+    // This prevents race condition where players receive phase change before role assignment
     room.players.forEach(player => {
       const playerSocket = Array.from(io.sockets.sockets.values())
         .find(s => s.data.playerId === player.playerId);
@@ -987,6 +987,9 @@ io.on('connection', (socket) => {
         });
       }
     });
+
+    // Notify everyone phase changed (AFTER roles are assigned)
+    io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
 
     io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
   });
