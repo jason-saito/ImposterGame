@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 
 export default function GameOver() {
-  const { winners, imposterIds, players, secretWord, resetGame, resetToLobby, gameCode, isHost } = useGameStore();
+  const { winners, imposterIds, players, secretWord, resetGame, resetToLobby, gameCode, isHost, gameOverReason } = useGameStore();
   const navigate = useNavigate();
 
   // Safety check - if no gameCode, can't go back to lobby
@@ -41,6 +41,21 @@ export default function GameOver() {
 
   const imposterPlayers = (players || []).filter(p => imposterIds?.includes(p.playerId));
 
+  // Determine the reason message
+  const getReasonMessage = () => {
+    if (gameOverReason === 'imposter_disconnect') {
+      return winners === 'civilians'
+        ? 'All imposters disconnected!'
+        : 'Imposters reached equal numbers!';
+    } else if (gameOverReason === 'civilian_disconnect') {
+      return 'Imposters reached equal or greater numbers!';
+    } else {
+      return winners === 'civilians'
+        ? 'All imposters have been eliminated!'
+        : 'The imposters fooled everyone!';
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -71,9 +86,7 @@ export default function GameOver() {
               {winners === 'civilians' ? 'CIVILIANS WIN!' : 'IMPOSTERS WIN!'}
             </h1>
             <p className="text-2xl font-bold text-white opacity-90">
-              {winners === 'civilians'
-                ? 'All imposters have been eliminated!'
-                : 'The imposters fooled everyone!'}
+              {getReasonMessage()}
             </p>
           </motion.div>
         </motion.div>

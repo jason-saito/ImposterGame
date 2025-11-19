@@ -1036,7 +1036,71 @@ io.on('connection', (socket) => {
         const player = room.players.find(p => p.playerId === playerId);
         if (player) {
           player.connected = false;
+          console.log(`👋 ${player.name} disconnected from room ${room.gameCode}`);
+
+          // Emit room update so vote counts update immediately
           io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
+
+          // Only check game-over conditions if game is in progress
+          if (room.status === 'playing' && room.gameState.phase !== 'gameOver') {
+            const wasImposter = room.gameState.imposterIds.includes(playerId);
+
+            // Calculate remaining connected, non-eliminated players
+            const activePlayers = room.players.filter(p => p.connected && !p.eliminated);
+            const remainingImposters = room.gameState.imposterIds.filter(
+              id => {
+                const p = room.players.find(player => player.playerId === id);
+                return p && p.connected && !p.eliminated;
+              }
+            );
+            const remainingCivilians = activePlayers.filter(
+              p => !room.gameState.imposterIds.includes(p.playerId)
+            );
+
+            console.log(`📊 After disconnect - Active: ${activePlayers.length}, Imposters: ${remainingImposters.length}, Civilians: ${remainingCivilians.length}`);
+
+            let gameOver = false;
+            let winners = null;
+
+            // Check if all imposters have left
+            if (remainingImposters.length === 0) {
+              console.log('🎉 All imposters left - Civilians win!');
+              gameOver = true;
+              winners = 'civilians';
+            }
+            // Check if imposters equal or outnumber civilians
+            else if (remainingImposters.length >= remainingCivilians.length) {
+              console.log('💀 Imposters equal or outnumber civilians - Imposters win!');
+              gameOver = true;
+              winners = 'imposters';
+            }
+
+            // If game should end due to disconnect
+            if (gameOver) {
+              room.status = 'finished';
+              room.gameState.phase = 'gameOver';
+
+              // Small delay so players see the disconnect first
+              setTimeout(() => {
+                io.to(roomId).emit('GAME_OVER', {
+                  winners,
+                  imposterIds: room.gameState.imposterIds,
+                  secretWord: room.gameState.secretWord,
+                  reason: wasImposter ? 'imposter_disconnect' : 'civilian_disconnect'
+                });
+                io.to(roomId).emit('PHASE_CHANGED', { phase: 'gameOver' });
+              }, 2000);
+            }
+            // If in voting phase, emit updated vote counts
+            else if (room.gameState.phase === 'voting') {
+              const votesReceived = Object.keys(room.gameState.votes).length;
+              io.to(roomId).emit('VOTE_UPDATE', {
+                votesReceived,
+                totalVotes: activePlayers.length
+              });
+              console.log(`📊 Vote count updated: ${votesReceived}/${activePlayers.length} (player disconnected)`);
+            }
+          }
         }
       }
     }

@@ -36,6 +36,7 @@ export const useGameStore = create((set, get) => ({
   otherImpostersCount: 0,
   playerOrder: [],
   roundNumber: 0,
+  gameOverReason: null,
 
   // Settings
   settings: {
@@ -106,7 +107,8 @@ export const useGameStore = create((set, get) => ({
       numImposters: 0,
       otherImpostersCount: 0,
       playerOrder: [],
-      roundNumber: 0
+      roundNumber: 0,
+      gameOverReason: null
     });
   },
 
@@ -200,13 +202,14 @@ export const useGameStore = create((set, get) => ({
       set({ eliminatedPlayer, remainingImpostersCount });
     });
 
-    socket.on('GAME_OVER', ({ winners, imposterIds, secretWord }) => {
-      console.log('📥 GAME_OVER received:', { winners, imposterIds, secretWord });
+    socket.on('GAME_OVER', ({ winners, imposterIds, secretWord, reason }) => {
+      console.log('📥 GAME_OVER received:', { winners, imposterIds, secretWord, reason });
       set({
         phase: 'gameOver',
         winners: winners || null,
         imposterIds: imposterIds || [],
-        secretWord: secretWord || null
+        secretWord: secretWord || null,
+        gameOverReason: reason || null
       });
     });
 
