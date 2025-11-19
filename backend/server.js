@@ -695,13 +695,44 @@ io.on('connection', (socket) => {
           voteCount: maxVotes
         });
 
-        // Reset votes and go back to discussion
+        // Reset votes and increment round number
         room.gameState.votes = {};
         room.gameState.readyPlayers = [];
-        room.gameState.phase = 'discussion';
+        room.gameState.clues = [];
+        room.gameState.roundNumber += 1;
+        room.gameState.phase = 'clue';
+
+        // Re-randomize player order for this round
+        const activePlayersForOrder = room.players.filter(p => p.connected && !p.eliminated);
+        const shuffledActivePlayers = secureShuffle(activePlayersForOrder);
+        room.gameState.playerOrder = shuffledActivePlayers.map(p => p.playerId);
+
+        console.log(`🔄 After tie, starting round ${room.gameState.roundNumber} with new hints`);
 
         setTimeout(() => {
-          io.to(roomId).emit('PHASE_CHANGED', { phase: 'discussion' });
+          // Send role info to each player FIRST (before phase change)
+          room.players.forEach(player => {
+            if (player.eliminated) return;
+
+            const playerSocket = Array.from(io.sockets.sockets.values())
+              .find(s => s.data.playerId === player.playerId);
+
+            if (playerSocket) {
+              const isImposter = room.gameState.imposterIds.includes(player.playerId);
+              const otherImpostersCount = isImposter ? room.gameState.imposterIds.length - 1 : 0;
+              playerSocket.emit('ROLE_INFO', {
+                role: isImposter ? 'imposter' : 'civilian',
+                word: isImposter ? null : room.gameState.secretWord,
+                category: room.settings.category,
+                numImposters: room.gameState.imposterIds.length,
+                otherImpostersCount: otherImpostersCount
+              });
+            }
+          });
+
+          // Notify everyone to give new hints (AFTER roles are assigned)
+          io.to(roomId).emit('PHASE_CHANGED', { phase: 'clue' });
+          io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
         }, 5000); // Show tie screen for 5 seconds
 
         return;

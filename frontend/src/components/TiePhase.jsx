@@ -73,10 +73,10 @@ export default function TiePhase() {
             className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl shadow-2xl p-8"
           >
             <h2 className="text-4xl font-black text-white mb-4">
-              ANOTHER ROUND!
+              GIVE NEW HINTS!
             </h2>
             <p className="text-xl text-white opacity-90">
-              Discuss again and vote more carefully...
+              Everyone will give new clues before voting again...
             </p>
           </motion.div>
         </motion.div>
