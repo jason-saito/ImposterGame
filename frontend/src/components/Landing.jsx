@@ -13,6 +13,7 @@ export default function Landing() {
   const [showJoinForm, setShowJoinForm] = useState(!!urlCode);
   const [showHostForm, setShowHostForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showColdStartMessage, setShowColdStartMessage] = useState(false);
 
   const { setPlayerId, setPlayerName: savePlayerName, setRoomData, joinRoom, initializeSocket } = useGameStore();
   const navigate = useNavigate();
@@ -44,6 +45,13 @@ export default function Landing() {
     }
 
     setLoading(true);
+    setShowColdStartMessage(false);
+
+    // Show cold start message after 3 seconds
+    const coldStartTimer = setTimeout(() => {
+      setShowColdStartMessage(true);
+    }, 3000);
+
     try {
       const response = await fetch(`${API_URL}/rooms`, {
         method: 'POST',
@@ -65,7 +73,9 @@ export default function Landing() {
       console.error('Error creating room:', error);
       alert('Failed to create room. Please try again.');
     } finally {
+      clearTimeout(coldStartTimer);
       setLoading(false);
+      setShowColdStartMessage(false);
     }
   };
 
@@ -76,6 +86,13 @@ export default function Landing() {
     }
 
     setLoading(true);
+    setShowColdStartMessage(false);
+
+    // Show cold start message after 3 seconds
+    const coldStartTimer = setTimeout(() => {
+      setShowColdStartMessage(true);
+    }, 3000);
+
     try {
       const response = await fetch(`${API_URL}/rooms/join`, {
         method: 'POST',
@@ -102,12 +119,31 @@ export default function Landing() {
       console.error('Error joining room:', error);
       alert(error.message || 'Failed to join room. Please try again.');
     } finally {
+      clearTimeout(coldStartTimer);
       setLoading(false);
+      setShowColdStartMessage(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center p-4">
+      {/* Loading overlay with cold start message */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-xl font-bold text-gray-800 mb-2">
+              {showHostForm ? 'Creating room...' : 'Joining room...'}
+            </p>
+            {showColdStartMessage && (
+              <p className="text-sm text-gray-600 animate-pulse">
+                Server is waking up, this may take up to 30 seconds...
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md w-full">
         <div className="text-center mb-12">
           <h1 className="text-6xl font-bold text-white mb-4">IMPOSTER</h1>

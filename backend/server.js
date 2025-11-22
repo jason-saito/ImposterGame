@@ -27,6 +27,10 @@ app.use(express.json());
 
 // In-memory store for rooms
 const rooms = new Map();
+// Secondary index for O(1) lookup by game code
+const roomsByCode = new Map();
+// Map for O(1) socket lookup by playerId
+const playerToSocket = new Map();
 
 // Word categories
 const wordCategories = {
@@ -87,7 +91,7 @@ function getUniqueGameCode() {
   let code;
   do {
     code = generateGameCode();
-  } while (Array.from(rooms.values()).some(room => room.gameCode === code));
+  } while (roomsByCode.has(code));
   return code;
 }
 
@@ -206,6 +210,7 @@ app.post('/rooms', (req, res) => {
   };
 
   rooms.set(roomId, room);
+  roomsByCode.set(gameCode, roomId);
 
   console.log(`✅ Room created - Code: ${gameCode}, Host: ${hostName}`);
   console.log(`   Active rooms: ${rooms.size}`);
@@ -216,7 +221,8 @@ app.post('/rooms', (req, res) => {
 // Get room by game code (for URL joining)
 app.get('/rooms/code/:gameCode', (req, res) => {
   const { gameCode } = req.params;
-  const room = Array.from(rooms.values()).find(r => r.gameCode === gameCode);
+  const roomId = roomsByCode.get(gameCode);
+  const room = roomId ? rooms.get(roomId) : null;
 
   if (!room) {
     return res.status(404).json({ error: 'Game not found' });
@@ -238,10 +244,11 @@ app.post('/rooms/join', (req, res) => {
 
   console.log(`🔍 Join attempt - Code: ${gameCode}, Player: ${playerName}`);
   console.log(`   Active rooms: ${rooms.size}`);
-  console.log(`   Active codes: ${Array.from(rooms.values()).map(r => r.gameCode).join(', ')}`);
+  console.log(`   Active codes: ${Array.from(roomsByCode.keys()).join(', ')}`);
 
-  // Find room by game code
-  const room = Array.from(rooms.values()).find(r => r.gameCode === gameCode);
+  // Find room by game code (O(1) lookup)
+  const roomId = roomsByCode.get(gameCode);
+  const room = roomId ? rooms.get(roomId) : null;
 
   if (!room) {
     console.log(`❌ Room not found for code: ${gameCode}`);
@@ -350,6 +357,9 @@ io.on('connection', (socket) => {
     socket.data.roomId = roomId;
     socket.data.playerId = playerId;
 
+    // Maintain playerToSocket mapping for O(1) lookup
+    playerToSocket.set(playerId, socket.id);
+
     // Send room state to all players
     io.to(roomId).emit('ROOM_UPDATED', { room: getRoomPublicData(room) });
 
@@ -414,8 +424,8 @@ io.on('connection', (socket) => {
     // Send role info to each player individually FIRST (before phase change)
     // This prevents race condition where players receive phase change before role assignment
     room.players.forEach(player => {
-      const playerSocket = Array.from(io.sockets.sockets.values())
-        .find(s => s.data.playerId === player.playerId);
+      const socketId = playerToSocket.get(player.playerId);
+      const playerSocket = socketId ? io.sockets.sockets.get(socketId) : null;
 
       if (playerSocket) {
         const isImposter = imposterIds.includes(player.playerId);
@@ -1003,8 +1013,8 @@ io.on('connection', (socket) => {
     // Send role info to each player individually FIRST (before phase change)
     // This prevents race condition where players receive phase change before role assignment
     room.players.forEach(player => {
-      const playerSocket = Array.from(io.sockets.sockets.values())
-        .find(s => s.data.playerId === player.playerId);
+      const socketId = playerToSocket.get(player.playerId);
+      const playerSocket = socketId ? io.sockets.sockets.get(socketId) : null;
 
       if (playerSocket) {
         const isImposter = imposterIds.includes(player.playerId);
@@ -1029,6 +1039,11 @@ io.on('connection', (socket) => {
     console.log('Client disconnected:', socket.id);
 
     const { roomId, playerId } = socket.data;
+
+    // Remove from playerToSocket mapping
+    if (playerId) {
+      playerToSocket.delete(playerId);
+    }
 
     if (roomId && playerId) {
       const room = rooms.get(roomId);

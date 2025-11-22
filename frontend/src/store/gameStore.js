@@ -2,11 +2,22 @@ import { create } from 'zustand';
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../config';
 
-const socket = io(SOCKET_URL);
+// Lazy socket initialization - only create socket when needed
+let socket = null;
+
+const getSocket = () => {
+  if (!socket) {
+    console.log('🔌 Initializing socket connection to', SOCKET_URL);
+    socket = io(SOCKET_URL);
+  }
+  return socket;
+};
 
 export const useGameStore = create((set, get) => ({
   // Connection state
-  socket,
+  get socket() {
+    return getSocket();
+  },
 
   // Player state
   playerId: localStorage.getItem('playerId') || null,
@@ -115,20 +126,21 @@ export const useGameStore = create((set, get) => ({
   // Socket event handlers
   initializeSocket: () => {
     const { roomId, playerId } = get();
+    const sock = getSocket();
 
     // Remove existing listeners to prevent duplicates
-    socket.off('ROOM_UPDATED');
-    socket.off('PHASE_CHANGED');
-    socket.off('ROLE_INFO');
-    socket.off('CLUE_SUBMITTED');
-    socket.off('VOTE_UPDATE');
-    socket.off('READY_UPDATE');
-    socket.off('VOTE_TIE');
-    socket.off('VOTE_RESULTS');
-    socket.off('GAME_OVER');
-    socket.off('ERROR');
+    sock.off('ROOM_UPDATED');
+    sock.off('PHASE_CHANGED');
+    sock.off('ROLE_INFO');
+    sock.off('CLUE_SUBMITTED');
+    sock.off('VOTE_UPDATE');
+    sock.off('READY_UPDATE');
+    sock.off('VOTE_TIE');
+    sock.off('VOTE_RESULTS');
+    sock.off('GAME_OVER');
+    sock.off('ERROR');
 
-    socket.on('ROOM_UPDATED', ({ room }) => {
+    sock.on('ROOM_UPDATED', ({ room }) => {
       console.log('📥 ROOM_UPDATED received. Clues:', room.gameState?.clues, 'Round:', room.gameState?.roundNumber);
       set({
         players: room.players,
@@ -139,7 +151,7 @@ export const useGameStore = create((set, get) => ({
       });
     });
 
-    socket.on('PHASE_CHANGED', ({ phase }) => {
+    sock.on('PHASE_CHANGED', ({ phase }) => {
       console.log('📥 PHASE_CHANGED:', phase);
       set({ phase });
 
@@ -167,9 +179,9 @@ export const useGameStore = create((set, get) => ({
       }
     });
 
-    socket.on('ROLE_INFO', ({ role, word, category, numImposters, otherImpostersCount }) => {
-      set({ 
-        role, 
+    sock.on('ROLE_INFO', ({ role, word, category, numImposters, otherImpostersCount }) => {
+      set({
+        role,
         secretWord: word,
         category: category || null,
         numImposters: numImposters || 0,
@@ -177,20 +189,20 @@ export const useGameStore = create((set, get) => ({
       });
     });
 
-    socket.on('CLUE_SUBMITTED', ({ clues }) => {
+    sock.on('CLUE_SUBMITTED', ({ clues }) => {
       console.log('📥 CLUE_SUBMITTED received. Clues:', clues);
       set({ clues });
     });
 
-    socket.on('VOTE_UPDATE', ({ votesReceived, totalVotes }) => {
+    sock.on('VOTE_UPDATE', ({ votesReceived, totalVotes }) => {
       set({ votes: { votesReceived, totalVotes } });
     });
 
-    socket.on('READY_UPDATE', ({ readyCount, totalPlayers }) => {
+    sock.on('READY_UPDATE', ({ readyCount, totalPlayers }) => {
       set({ readyPlayers: { readyCount, totalPlayers } });
     });
 
-    socket.on('VOTE_TIE', ({ tiedPlayers, voteCount }) => {
+    sock.on('VOTE_TIE', ({ tiedPlayers, voteCount }) => {
       set({
         phase: 'tie',
         tiedPlayers,
@@ -198,11 +210,11 @@ export const useGameStore = create((set, get) => ({
       });
     });
 
-    socket.on('VOTE_RESULTS', ({ eliminatedPlayer, wasImposter, remainingImpostersCount }) => {
+    sock.on('VOTE_RESULTS', ({ eliminatedPlayer, wasImposter, remainingImpostersCount }) => {
       set({ eliminatedPlayer, remainingImpostersCount });
     });
 
-    socket.on('GAME_OVER', ({ winners, imposterIds, secretWord, reason }) => {
+    sock.on('GAME_OVER', ({ winners, imposterIds, secretWord, reason }) => {
       console.log('📥 GAME_OVER received:', { winners, imposterIds, secretWord, reason });
       set({
         phase: 'gameOver',
@@ -213,7 +225,7 @@ export const useGameStore = create((set, get) => ({
       });
     });
 
-    socket.on('ERROR', ({ message }) => {
+    sock.on('ERROR', ({ message }) => {
       console.error('❌ Socket error:', message);
       console.error('Error context:', { roomId: get().roomId, playerId: get().playerId, role: get().role, phase: get().phase });
       alert(message);
@@ -221,71 +233,72 @@ export const useGameStore = create((set, get) => ({
   },
 
   joinRoom: (roomId, playerId) => {
-    socket.emit('JOIN_ROOM', { roomId, playerId });
+    getSocket().emit('JOIN_ROOM', { roomId, playerId });
   },
 
   startGame: () => {
     const { roomId } = get();
+    const sock = getSocket();
     if (!roomId) {
       console.error('Cannot start game: roomId is missing');
       alert('Error: Not connected to a room. Please try refreshing the page.');
       return;
     }
-    
+
     // Check if socket is connected
-    if (!socket.connected) {
+    if (!sock.connected) {
       console.error('Socket not connected. Attempting to reconnect...');
-      socket.connect();
+      sock.connect();
       // Wait a moment for connection
       setTimeout(() => {
-        if (socket.connected) {
+        if (sock.connected) {
           console.log('Socket reconnected. Starting game...');
-          socket.emit('START_GAME', { roomId });
+          sock.emit('START_GAME', { roomId });
         } else {
           alert('Error: Cannot connect to server. Please check if the backend is running and refresh the page.');
         }
       }, 1000);
       return;
     }
-    
+
     console.log('Starting game with roomId:', roomId);
-    socket.emit('START_GAME', { roomId });
+    sock.emit('START_GAME', { roomId });
   },
 
   submitClue: (text) => {
     const { roomId, playerId } = get();
     console.log('📤 Submitting clue:', { roomId, playerId, text });
-    socket.emit('SUBMIT_CLUE', { roomId, playerId, text });
+    getSocket().emit('SUBMIT_CLUE', { roomId, playerId, text });
   },
 
   startVoting: () => {
     const { roomId, playerId } = get();
-    socket.emit('START_VOTING', { roomId, playerId });
+    getSocket().emit('START_VOTING', { roomId, playerId });
   },
 
   castVote: (targetId) => {
     const { roomId, playerId, role } = get();
     console.log('📤 Casting vote:', { roomId, playerId, targetId, role });
-    socket.emit('CAST_VOTE', { roomId, voterId: playerId, targetId });
+    getSocket().emit('CAST_VOTE', { roomId, voterId: playerId, targetId });
   },
 
   nextRound: () => {
     const { roomId, playerId } = get();
-    socket.emit('NEXT_ROUND', { roomId, playerId });
+    getSocket().emit('NEXT_ROUND', { roomId, playerId });
   },
 
   endGame: () => {
     const { roomId, playerId } = get();
-    socket.emit('END_GAME', { roomId, playerId });
+    getSocket().emit('END_GAME', { roomId, playerId });
   },
 
   restartGame: () => {
     const { roomId, playerId } = get();
-    socket.emit('RESTART_GAME', { roomId, playerId });
+    getSocket().emit('RESTART_GAME', { roomId, playerId });
   },
 
   resetToLobby: () => {
     const { roomId, playerId } = get();
-    socket.emit('RESET_TO_LOBBY', { roomId, playerId });
+    getSocket().emit('RESET_TO_LOBBY', { roomId, playerId });
   }
 }));
